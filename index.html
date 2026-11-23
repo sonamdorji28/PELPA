@@ -23,6 +23,23 @@ create policy "insert inquiries" on inquiries for insert with check (true);
 -- Real payments: create an Edge Function that talks to your Bhutan gateway (DK Bank / BOB mPay / BNB) and sets bookings.status='paid'.
 ===============================================================================
 -->
+<!--
+=================== PELPA v2 additions (run once in the SQL editor) ===================
+alter table bookings add column if not exists ref text unique, add column if not exists pay_reference text, add column if not exists amount_due int, add column if not exists paid_usd int default 0;
+alter table packages add column if not exists itin text, add column if not exists premier boolean default false;
+create table if not exists admins(email text primary key);  -- insert into admins(email) values ('you@example.com');
+create or replace function is_admin() returns boolean language sql stable security definer set search_path=public as $$ select exists(select 1 from admins where lower(email)=lower(coalesce(auth.jwt()->>'email',''))) $$;
+create policy "admin bookings" on bookings for all using (is_admin()) with check (is_admin());
+create policy "admin packages" on packages for all using (is_admin()) with check (is_admin());
+create policy "admin enquiries read" on inquiries for select using (is_admin());
+create or replace function get_booking(p_ref text,p_email text) returns jsonb language sql security definer set search_path=public as $$
+  select to_jsonb(b) - 'id' from bookings b where b.ref=upper(p_ref) and lower(b.email)=lower(p_email) limit 1 $$;
+grant execute on function get_booking(text,text) to anon, authenticated;
+-- Payments: card checkout = paste a Stripe Payment Link in CFG.STRIPE_LINK. Bank / mBoB / DK = fill CFG.BANK / CFG.WALLET.
+-- Guests submit a reference; you verify in your bank or Stripe, then press "Mark paid" in the dashboard (#admin).
+=======================================================================================
+-->
+
 <style>
 :root{--ink:#14202b;--muted:#5d6b76;--bg:#f2f4f3;--card:#fff;--line:#dfe4e2;--maroon:#6b1523;--saffron:#e9a118;--saffron-d:#b97a00;--night:#0e1a28;--r:18px;
 --f1:#2e6fb7;--f2:#f4f1ea;--f3:#c8312f;--f4:#2f8a4f;--f5:#e9a118}
@@ -287,6 +304,52 @@ img,svg,canvas,video{max-width:100%}
 @media(hover:none){.card:hover,.pf:hover,.why>div:hover,.gal div:hover{transform:none}.btn:hover{transform:none}}
 @media(max-height:520px) and (orientation:landscape){.hero{min-height:auto}.hero .wrap{padding-top:96px;padding-bottom:100px}#chat{height:calc(100dvh - 100px)}}
 </style>
+<style id="hybrid">
+[hidden]{display:none!important}
+.f input[type=radio],.f input[type=checkbox]{width:auto!important;min-height:0!important;padding:0!important;flex:none;accent-color:#e9a118}
+.pay label{align-items:center}.pay label>span{min-width:0}
+a.btn{text-decoration:none}
+#mbB{width:42px;height:42px;padding:0;font-size:1.05rem}
+/* ===== Hybrid additions: PELPA way selector, toolbar, payments, my-booking ===== */
+#chips{display:none}
+.wy{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:6px 0 22px}
+.wc{position:relative;overflow:hidden;text-align:left;color:#fff;border:1.5px solid #ffffff40;border-radius:26px;padding:18px 18px 16px;min-height:168px;display:grid;align-content:space-between;gap:6px;cursor:pointer;box-shadow:0 14px 34px #0a1a3a40,inset 0 1px 0 #ffffff55;transition:transform .35s cubic-bezier(.2,.9,.3,1.2),box-shadow .35s,opacity .3s}
+.wc::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 0,#ffffff44,transparent 55%)}
+.wc::after{content:"";position:absolute;inset:auto 0 0;height:42%;background:#0e1a2858;clip-path:polygon(0 100%,0 60%,16% 28%,32% 58%,52% 6%,72% 52%,100% 20%,100% 100%)}
+.wc>*{position:relative;z-index:1}
+.wc .L{font:800 3.6rem/.85 Fraunces,serif;letter-spacing:-.04em;text-shadow:0 6px 24px #0006}
+.wc b{display:block;font:700 1.12rem/1.2 Fraunces,serif}.wc small{display:block;font:500 .78rem/1.35 Manrope,sans-serif;opacity:.92;margin-top:3px}
+.wc .n{position:absolute;top:14px;right:14px;z-index:2;padding:3px 10px;border-radius:99px;background:#ffffff2e;border:1px solid #ffffff66;font:700 .68rem Manrope;backdrop-filter:blur(10px)}
+.wy.has .wc:not(.on){opacity:.55;transform:scale(.97)}
+.wc.on{transform:translateY(-6px);box-shadow:0 22px 44px #0a1a3a66,0 0 0 3px var(--saffron),inset 0 1px 0 #ffffff66}
+.wc:hover{transform:translateY(-5px)}
+.wc:focus-visible{outline:3px solid var(--saffron);outline-offset:3px}
+.wnote{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:22px;padding:18px 22px;border-radius:24px;background:var(--glass);border:1px solid var(--gb);box-shadow:var(--gs);backdrop-filter:blur(18px)}
+.wnote p{margin:0;max-width:60ch;color:var(--muted)}.wnote .ofr{margin:0}
+.tb{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.tb input,.tb select{min-height:44px;padding:0 16px;border-radius:99px;border:1.5px solid var(--gb);background:var(--glass);color:var(--ink);font:600 .9rem Manrope;backdrop-filter:blur(12px)}
+.tb input{flex:1;min-width:180px;max-width:360px}
+.pm{position:absolute;top:14px;left:14px;z-index:2;padding:5px 12px;border-radius:99px;background:linear-gradient(180deg,#ffd35c,#e9a118);color:#2a1a00;font:800 .68rem Manrope;letter-spacing:.06em;text-transform:uppercase}
+.empty2{grid-column:1/-1;padding:40px;text-align:center;color:var(--muted)}
+.btn.wa{background:linear-gradient(180deg,#3fdc7a,#1faa56);color:#052b14}
+.ofr{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.inc2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:6px 0 12px}.inc2 h4{font:700 1rem Fraunces,serif;margin-bottom:6px}.inc2 ul{list-style:none;padding:0;display:grid;gap:5px;font-size:.88rem;color:var(--muted)}.inc2 li::before{content:"✓ ";color:var(--f4);font-weight:800}.inc2 .x li::before{content:"✕ ";color:var(--f3)}
+.amt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}.amt label{display:grid;gap:2px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer}.amt label small{font-weight:500;color:var(--muted)}.amt label:has(input:checked){border-color:var(--saffron);background:#e9a11824}.amt input{position:absolute;opacity:0}
+.pi2{padding:14px;border:1px dashed var(--saffron);border-radius:14px;background:#e9a11812;font-size:.88rem;display:grid;gap:6px;margin-top:8px}
+.pi2 b.cp{font-family:ui-monospace,Menlo,monospace;background:var(--line);padding:2px 8px;border-radius:8px;cursor:pointer;word-break:break-all}
+.rfx{text-align:center;padding:16px;border-radius:18px;background:linear-gradient(135deg,#e9a11833,#c8312f26);border:1px solid #e9a11866;margin:6px 0}.rfx small{font:700 .66rem Manrope;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}.rfx b{display:block;font:800 2rem Fraunces,serif}
+.sbd{display:inline-block;padding:3px 12px;border-radius:99px;font:700 .7rem Manrope;text-transform:uppercase;letter-spacing:.08em;background:#e9a11826;border:1px solid #e9a11888}.sbd.ok{background:#2f8a4f26;border-color:#2f8a4f;color:var(--f4)}.sbd.no{background:#c8312f22;border-color:var(--f3);color:var(--f3)}
+.pk-ed{display:grid;gap:10px;border:1px solid var(--line);border-radius:18px;padding:14px;margin:10px 0}
+.pk-ed .r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pk-ed input,.pk-ed textarea,.pk-ed select{padding:11px 13px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:500 1rem Manrope;width:100%;min-width:0}
+@media(max-width:820px){
+ .wy{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin-inline:-20px;padding:6px 20px 16px;scrollbar-width:none}.wy::-webkit-scrollbar{display:none}.wc{flex:0 0 min(72vw,250px);scroll-snap-align:start;min-height:150px}.wc .L{font-size:3rem}
+ .inc2{grid-template-columns:1fr}.tb input{max-width:none;flex-basis:100%}.tb select{flex:1}
+ #mbB{display:none}
+}
+@media(max-width:480px){.pk-ed .r2{grid-template-columns:1fr}.wy{margin-inline:-16px;padding-inline:16px}}
+@media(prefers-reduced-motion:reduce){.wc{transition:none}}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="logo" viewBox="0 0 48 48"><defs><linearGradient id="lgG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd35c"/><stop offset="1" stop-color="#c8312f"/></linearGradient></defs><rect width="48" height="48" rx="14" fill="url(#lgG)"/><circle cx="33" cy="14" r="5" fill="#fff" opacity=".92"/><path d="M3 40 L18 16 L26 29 L31 22 L45 40Z" fill="#14202b" opacity=".88"/><path d="M18 16 L22 23 L18 21 L14 23Z" fill="#fff"/><path d="M10 11 q4 -4 8 0 t8 0" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".8"/></symbol></svg>
@@ -294,7 +357,7 @@ img,svg,canvas,video{max-width:100%}
 <div id="intro"><div><i class="lg" role="img" aria-label="PELPA logo"></i><b>PELPA</b><span class="sl"></span></div></div>
 <nav><div class="wrap"><a class="logo" href="#top"><i class="lg" role="img" aria-label="PELPA logo"></i><span>PELPA<small class="sl">Explore More. Experience Beyond</small></span></a>
 <ul><li><a href="#tours">Journeys</a></li><li><a href="#route">Route</a></li><li><a href="#when">When to go</a></li><li><a href="#fests">Festivals</a></li><li><a href="#team">Our Team</a></li><li><a href="#plan">Plan</a></li></ul>
-<span style="display:flex;gap:8px;align-items:center"><button class="chip" id="tt" aria-label="Switch day or night"></button><button class="chip" id="bgr" aria-label="Open menu" aria-expanded="false">☰</button></span></div></nav>
+<span style="display:flex;gap:8px;align-items:center"><button class="chip" id="mbB" aria-label="My booking" title="My booking">🎫</button><button class="chip" id="tt" aria-label="Switch day or night"></button><button class="chip" id="bgr" aria-label="Open menu" aria-expanded="false">☰</button></span></div></nav>
 
 <header class="hero" id="top">
 <div class="pf1" id="pf1" aria-hidden="true"></div><div class="pf1 l" id="pf2" aria-hidden="true"></div>
@@ -311,14 +374,14 @@ img,svg,canvas,video{max-width:100%}
 <label>Travel date<input type="date" id="qd"></label>
 <label>Guests<input type="number" id="qg" min="1" max="20" value="2"></label>
 <button class="btn" type="submit">Find trips</button></form>
-<div class="ai2"><a href="#" onclick="openChat('plan');return false">🧭 Plan my trip with AI</a></div><div class="trust"><span>Licensed by Tourism Council of Bhutan*</span><span>Private guide & driver</span><span>OTP-secured booking</span></div>
+<div class="ai2"><a href="#" onclick="openChat('plan');return false">🧭 Plan my trip with AI</a></div><div class="trust"><span>Licensed by Tourism Council of Bhutan*</span><span>Private guide & driver</span></div>
 </div></header>
 <div class="strip"></div>
 <div class="wrap"><div class="stats"><div><b>6</b>curated journeys</div><div><b>4,110 m</b>highest trek camp</div><div><b>1:1</b>private guide &amp; driver</div><div><b>OTP</b>verified booking</div></div></div>
 
 <section id="tours"><div class="wrap">
 <h2>Journeys, built around Bhutan</h2><p class="sub">Every price covers a private guide, driver, hotels, meals, permits and transport. The Sustainable Development Fee is shown separately.</p>
-<div class="chips" id="chips"></div><div class="grid" id="grid"></div>
+<div class="wy" id="wy" role="group" aria-label="The PELPA way: filter journeys"></div><div class="tb"><input id="qs2" type="search" placeholder="Search journeys, places…" aria-label="Search journeys"><select id="ds2" aria-label="Length"><option value="any">Any length</option><option value="s">Up to 5 days</option><option value="m">6 to 8 days</option><option value="l">9+ days</option></select><button class="chip" id="svT" aria-pressed="false">♥ Saved</button></div><div class="chips" id="chips"></div><div class="grid" id="grid"></div><div id="wnote"></div>
 </div></section>
 
 <section id="route"><div class="wrap"><h2>Cross Bhutan, one valley at a time</h2><p class="sub">Tap a stop to see its altitude, its story and what to do there.</p><div class="gl"><div class="rtw"><svg id="rsv" viewBox="0 0 900 280" role="img" aria-label="Altitude along the main route"></svg></div><div id="rin"></div></div></div></section>
@@ -341,7 +404,7 @@ img,svg,canvas,video{max-width:100%}
 <div><h3>Local, licensed, accountable</h3><p>Our guides are Bhutanese and trained in culture, history and trekking safety.</p></div>
 <div><h3>One price, no surprises</h3><p>Hotels, meals, guide, driver and permits are bundled. Fees are listed before you pay.</p></div>
 <div><h3>Pay with confidence</h3><p>Every booking is verified by a one-time code sent to you before payment.</p></div>
-<div><h3>Corporate & MICE</h3><p>Retreats, incentive trips and conferences for teams, from 6 to 60 people.</p></div></div></div></section>
+</div></div></section>
 
 <section id="plan"><div class="wrap"><div class="plan"><div><h2>Design your own journey</h2><p class="sub">Leisure, adventure or a professional retreat. Tell us your idea and a Bhutanese expert replies within 24 hours with a draft itinerary.</p>
 <ol class="way"><li><b>01</b><span><h4>Tell us</h4><p>Your interests, month and group size.</p></span></li><li><b>02</b><span><h4>We design it</h4><p>A draft route, hotels, guide and visa guidance, all explained.</p></span></li><li><b>03</b><span><h4>You travel</h4><p>Confirm with a 30% deposit, then we handle the rest.</p></span></li></ol></div>
@@ -379,6 +442,7 @@ img,svg,canvas,video{max-width:100%}
 <button class="btn ghost" style="margin-top:14px" onclick="closeB()">Close</button>
 </div></div>
 
+<div class="modal" id="mb" role="dialog" aria-modal="true" aria-label="My booking"><div class="sheet"><h3>My booking</h3><p class="note">Enter the reference from your confirmation and the email you booked with.</p><div class="f" style="margin-top:12px"><label>Booking reference<input id="mbr" placeholder="PELPA-XXXXXX"></label><label>Email<input id="mbm" type="email"></label><p class="msg" id="mbe"></p><button class="btn" id="mbG">Find booking</button></div><div id="mbo" style="margin-top:12px"></div><button class="btn ghost" style="margin-top:12px" onclick="$('#mb').classList.remove('on')">Close</button></div></div>
 <div class="modal" id="dm" role="dialog" aria-modal="true"><div class="sheet" style="width:min(720px,100%)"><h3 id="dt"></h3><p class="note" id="dv" style="font-style:italic"></p><div id="dc"></div><div id="df" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" onclick="$('#dm').classList.remove('on');openB(cur.id)">Book this journey</button><button class="btn ghost" onclick="shareT()">Share on WhatsApp</button><button class="btn alt" id="de" hidden onclick="openD(cur.id,1)">✏️ Edit itinerary</button><button class="btn ghost" onclick="$('#dm').classList.remove('on')">Close</button></div></div></div>
 <div class="modal" id="jm" role="dialog" aria-modal="true"><div class="sheet"><h3>PELPA membership</h3><p class="note">For freelance guides and drivers. We verify your licence before your profile goes live.</p><div class="f" style="margin-top:14px">
 <label>I am a<select id="jr"><option value="guide">Guide</option><option value="driver">Driver</option></select></label>
@@ -403,7 +467,13 @@ img,svg,canvas,video{max-width:100%}
 
 <script>
 /* ============ CONFIG: paste your Supabase project values ============ */
-const CFG={SUPABASE_URL:"",SUPABASE_ANON_KEY:"",SDF_USD_PER_NIGHT:100,CHAT_URL:"",PAY_URL:"",ADMIN_EMAIL:""};
+const CFG={SUPABASE_URL:"",SUPABASE_ANON_KEY:"",SDF_USD_PER_NIGHT:100,CHAT_URL:"",PAY_URL:"",ADMIN_EMAIL:"",
+/* --- payments & contact (edit these) --- */
+WHATSAPP:"97517000000",EMAIL:"hello@pelpa.bt",PHONE:"+975 17 000 000",DEPOSIT_PCT:30,
+STRIPE_LINK:"", /* paste a Stripe Payment Link to switch on card checkout */
+BANK:{name:"",account_name:"",account_no:"",bank:"",swift:"",note:""}, /* fill to show bank transfer */
+WALLET:{label:"mBoB / DK mobile banking",number:"",qr_image:"",note:""}, /* your merchant number or QR image URL */
+CANCEL_POLICY:"Your deposit secures your dates. Cancellation and refund terms are confirmed in your booking confirmation."};
 /* ==================================================================== */
 const sb=(CFG.SUPABASE_URL&&window.supabase)?supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY):null;
 const DEMO=!sb, DEMO_CODE="123456";
@@ -634,6 +704,102 @@ $("#cjm").innerHTML="<option>Flexible</option>"+MN.map(m=>`<option>${m}</option>
 addEventListener("scroll",()=>{$("#prog").style.width=scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight)*100+"%"},{passive:true});
 loadPackages().then(render);render();loadTeam();loadSet();loadIt();rvAll();routeInit();monthInit();festInit();
 document.addEventListener("keydown",e=>{if(e.key=="Escape")closeB()});
+</script>
+<script id="hybrid-js">
+(function(){
+/* ---------- extra samples (kept alongside your originals) ---------- */
+const NEW=[
+{id:"nest",name:"Tiger's Nest Escape",cat:"Culture",days:4,price:980,region:"Paro, Haa",blurb:"A short, soulful long weekend: the iconic cliff monastery and a hidden valley.",highlights:["Sunrise hike to Taktsang","Haa Valley over Chele La","Hot stone bath at a farmhouse"],c:"#6b1523,#e9a118",itin:"Paro | 2200 | Arrive, Kyichu Lhakhang and a welcome dinner\nTiger's Nest | 3120 | The big hike, about 5 to 6 hours round trip\nHaa Valley | 3900 | Over Chele La to the quiet, almost hidden Haa\nParo | 2200 | Textile market stroll and departure"},
+{id:"bum",name:"Bumthang: Spiritual Heartland",cat:"Culture",days:9,price:2350,region:"Thimphu, Trongsa, Bumthang",blurb:"Ancient temples and cheese farms in the quiet central valleys.",highlights:["Trongsa Dzong, seat of kings","Jambay and Kurjey Lhakhang","Pele La pass, local honey and cheese"],c:"#1f4d36,#e9a118",itin:"Paro | 2200 | Arrive and a farm-to-table dinner\nThimphu | 2320 | Capital sights and a paper-making workshop\nPunakha | 1300 | Dochula Pass and Punakha Dzong\nGangtey | 3000 | Cross to the glacial valley of Phobjikha\nTrongsa | 2200 | Over Pele La to the great dzong\nBumthang | 2600 | Drive through Yotong La, temples at Jakar\nBumthang | 2600 | Tamshing Monastery and a village walk\nBumthang | 2600 | Scenic flight or drive back toward Paro\nParo | 2200 | Farewell dinner and departure"},
+{id:"film",name:"Film & Photography Expedition",cat:"Corporate",days:8,price:2750,region:"Paro, Thimphu, Punakha, Bumthang",blurb:"Permits, local fixers and a schedule built around golden-hour light.",highlights:["Permit support and a local fixer","Dawn and dusk shooting schedule","Vehicles sized for kit and crew"],c:"#14202b,#2e6fb7",itin:"Paro | 2200 | Gear check, briefing and location scouting\nParo | 2200 | Orchards, bridges and the old dzong at golden hour\nThimphu | 2320 | Markets, craft studios and street portraits\nPunakha | 1300 | Mountain panoramas and the great river dzong\nPhobjikha | 3000 | Glacial valley landscapes and wildlife\nTrongsa | 2200 | The cliff-hung dzong and gorge light\nBumthang | 2600 | Temples, farms and quiet valley portraits\nParo | 2200 | Backup day and transfers"}];
+const PALS={Culture:"#6b1523,#c8312f",Trek:"#1f4d36,#4fa371",Festival:"#8a4b00,#e9a118",Wellness:"#243b6b,#5d86c9",Luxury:"#2b1c3d,#9a6ad1",Corporate:"#14202b,#2e6fb7"};
+const PREM=new Set(["lux"]);
+const INC=["Private licensed Bhutanese guide and driver","Hotels or lodges, all meals during the journey","Airport transfers and all internal transport","Entry fees, permits and visa processing support"],EXC=["International flights","Personal travel insurance","Sustainable Development Fee (itemised separately)","Tips, drinks and personal shopping"];
+const LS={g:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},s:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const toItin=p=>{const rows=(p.itin||"").split("\n").map(l=>l.split("|").map(s=>s.trim())).filter(r=>r[0]);
+ DAYS[p.id]=rows.length>=2?rows.map(r=>[r[0],+r[1]||0,r.slice(2).join(" | ")]):[[(p.region||"Paro").split(",")[0],2200,p.blurb||"Arrival"],[(p.region||"Paro").split(",").pop().trim(),2300,"Departure"]];delete ITIN[p.id]};
+const adopt=p=>{if(!p.c)p.c=PALS[p.cat]||"#14202b,#2e6fb7";p.price=+p.price||0;p.days=+p.days||2;p.highlights=Array.isArray(p.highlights)?p.highlights:String(p.highlights||"").split("\n").filter(Boolean);if(p.premier)PREM.add(p.id);const i=PK.findIndex(x=>x.id==p.id);i>=0?PK[i]=Object.assign(PK[i],p):PK.push(p);if(p.itin||!DAYS[p.id])toItin(p);META[p.id]=META[p.id]||{lv:p.cat=="Trek"?3:1,s:"All year",v:p.blurb||""}};
+NEW.forEach(p=>{if(!PK.some(x=>x.id==p.id))adopt(p)});
+const saved=LS.g("pelpa_pk_custom",null);if(saved&&DEMO)saved.forEach(adopt);
+const _lp=loadPackages;loadPackages=async function(){await _lp();PK.forEach(p=>{if(!p.c)p.c=PALS[p.cat]||"#14202b,#2e6fb7";if(p.itin)toItin(p);if(p.premier)PREM.add(p.id)});render()};
+
+/* ---------- journeys: PELPA way selector + search + length + saved ---------- */
+const WAY=[["P","Premier","Hand-picked lodges, private guides and quiet luxury.",["Luxury"],"#2b1c3d,#9a6ad1"],["E","Experiences","Festivals, temples and moments you can’t book elsewhere.",["Festival","Culture"],"#8a4b00,#c8312f"],["L","Leisure","Slow valleys, hot-stone baths and long lunches.",["Wellness"],"#243b6b,#5d86c9"],["P","Professional","Retreats, incentives and film expeditions.",["Corporate"],"#14202b,#2e6fb7"],["A","Adventures","Treks and ridge walks on high passes.",["Trek"],"#1f4d36,#4fa371"]];
+let WS=-1,SVO=false;
+function drawWay(){$("#wy").className="wy"+(WS>=0?" has":"");$("#wy").innerHTML=WAY.map((w,i)=>{const n=PK.filter(p=>w[3].includes(p.cat)).length,[a,b]=w[4].split(",");return`<button type="button" class="wc${i==WS?" on":""}" style="background:linear-gradient(135deg,${a},${b})" data-i="${i}" aria-pressed="${i==WS}" aria-label="${w[1]}: ${n} journeys"><span class="n">${n} journey${n==1?"":"s"}</span><span class="L" aria-hidden="true">${w[0]}</span><span><b>${w[1]}</b><small>${w[2]}</small></span></button>`}).join("");
+ document.querySelectorAll("#wy .wc").forEach(c=>c.onclick=()=>{WS=WS==+c.dataset.i?-1:+c.dataset.i;render()})}
+const _r=render;render=function(){cat="All";_r();const q=($("#qs2")||{value:""}).value.trim().toLowerCase(),dl=($("#ds2")||{value:"any"}).value,cs=WS>=0?WAY[WS][3]:null;let n=0;
+ document.querySelectorAll("#grid .card").forEach(c=>{const nm=c.querySelector("h3").textContent,p=PK.find(x=>x.name==nm);if(!p)return;
+  const ok=(!cs||cs.includes(p.cat))&&(!SVO||SAVED.has(p.id))&&(!q||(p.name+" "+p.region+" "+p.blurb+" "+p.cat).toLowerCase().includes(q))&&(dl=="any"||(dl=="s"&&p.days<=5)||(dl=="m"&&p.days>=6&&p.days<=8)||(dl=="l"&&p.days>=9));
+  c.style.display=ok?"":"none";if(ok)n++;if(PREM.has(p.id)&&!c.querySelector(".pm"))c.querySelector(".art").insertAdjacentHTML("afterbegin",'<span class="pm">★ Premier</span>')});
+ const g=$("#grid"),e=g.querySelector(".empty2");if(e)e.remove();if(!n)g.insertAdjacentHTML("beforeend",'<p class="empty2">'+(SVO?"You haven’t saved any journeys yet. Tap the heart on a card.":"No journeys match yet. Try another length or search.")+'</p>');
+ drawWay();$("#svT").setAttribute("aria-pressed",SVO);$("#svT").textContent="♥ Saved"+(SAVED.size?" ("+SAVED.size+")":"");
+ $("#wnote").innerHTML=WS==3?`<div class="wnote"><p><b>Planning for a team or a crew?</b> We design retreats, incentive trips and expeditions end to end.</p><div class="ofr"><button class="btn" id="proReq">Request a proposal</button><a class="btn wa" id="proWa" target="_blank" rel="noopener" href="https://wa.me/${CFG.WHATSAPP}?text=${encodeURIComponent("Hello PELPA, I would like a proposal for a group programme in Bhutan.")}">WhatsApp us</a></div></div>`:"";
+ const pr=$("#proReq");if(pr)pr.onclick=()=>{$("#cjt").value="Professional retreat or MICE";$("#plan").scrollIntoView();setTimeout(()=>$("#cjn").focus({preventScroll:true}),600)}};
+$("#qs2").oninput=()=>render();$("#ds2").onchange=()=>render();$("#svT").onclick=()=>{SVO=!SVO;render()};
+pick=function(id,scroll){WS=-1;SVO=false;$("#ds2").value="any";$("#qs2").value=id=="all"?"":(PK.find(x=>x.id==id)||{name:""}).name;render();$("#tours").scrollIntoView()};
+
+/* ---------- richer journey detail: included / not included ---------- */
+const _od=openD;openD=function(id,edit){_od(id,edit);if(!edit)$("#dc").insertAdjacentHTML("beforeend",`<div class="inc2"><div><h4>Included</h4><ul>${INC.map(x=>`<li>${x}</li>`).join("")}</ul></div><div><h4>Not included</h4><ul class="x">${EXC.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>`)};
+
+/* ---------- payments (card link, mobile banking, bank transfer, invoice) ---------- */
+const BL=LS.g("pelpa_book",[]),stBadge={deposit_pending:["Awaiting deposit",""],payment_submitted:["Payment submitted, verifying",""],deposit_paid:["Deposit paid","ok"],paid:["Paid in full","ok"],cancelled:["Cancelled","no"]};
+const dep=()=>Math.ceil(total()*CFG.DEPOSIT_PCT/100),cp=v=>`<b class="cp" data-cp="${esc(v)}" title="Tap to copy">${esc(v)}</b>`;
+let REF="";const mkRef=()=>"PELPA-"+Array.from({length:6},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)]).join("");
+const amtNow=()=>(document.querySelector("[name=amt]:checked")||{value:"dep"}).value=="full"?total():dep();
+function methods(){const m=[["mBoB","mBoB (Bank of Bhutan)","Mobile banking or QR"],["DK Bank","DK Bank","Mobile banking or QR"]];if(CFG.STRIPE_LINK||CFG.PAY_URL)m.push(["Card","Visa / Mastercard","Secure checkout on our payment provider’s page"]);if(CFG.BANK.account_no||CFG.BANK.name)m.push(["Bank transfer","Bank transfer","Send from your own bank, then enter the reference"]);m.push(["Invoice","Pay later, send me an invoice","Dates held for 48 hours"]);return m}
+function panel(){const m=(document.querySelector("[name=pm]:checked")||{}).value,a=amtNow(),b=CFG.BANK,w=CFG.WALLET;REF=REF||mkRef();$("#t3").textContent=usd(a)+(amtNow()==total()?" (full amount)":" deposit ("+CFG.DEPOSIT_PCT+"%)");let h="";
+ if(m=="mBoB"||m=="DK Bank")h=`<div class="pi2"><b>Send ${usd(a)} by ${esc(m)}</b>${w.qr_image?`<img src="${esc(w.qr_image)}" alt="Payment QR" style="width:180px;max-width:100%;border-radius:12px;background:#fff;padding:6px">`:""}${w.number?`<span>Number: ${cp(w.number)}</span>`:"<span>Our team emails the account number and QR right after you confirm.</span>"}<span>Reference: ${cp(REF)}</span>${w.note?`<span>${esc(w.note)}</span>`:""}</div><label style="margin-top:8px">Transaction ID from your app<input id="txn" placeholder="Optional now, required to speed up verification"></label>`;
+ else if(m=="Card")h=`<div class="pi2"><b>Pay ${usd(a)} by card</b><span>You are taken to a secure checkout page. Card details are never entered on this site. Use reference ${cp(REF)}.</span></div>`;
+ else if(m=="Bank transfer")h=`<div class="pi2"><b>Transfer ${usd(a)}</b>${b.account_name||b.name?`<span>Account name: ${esc(b.account_name||b.name)}</span>`:""}${b.account_no?`<span>Account no.: ${cp(b.account_no)}</span>`:""}${b.bank?`<span>Bank: ${esc(b.bank)}${b.swift?" · SWIFT "+esc(b.swift):""}</span>`:""}<span>Reference: ${cp(REF)}</span>${b.note?`<span>${esc(b.note)}</span>`:""}</div><label style="margin-top:8px">Your transfer receipt number<input id="txn" placeholder="Required so we can match your payment"></label>`;
+ else h=`<div class="pi2"><b>We will email you an invoice</b><span>Your dates are held for 48 hours while you arrange payment.</span></div>`;
+ $("#pbox").innerHTML=h;document.querySelectorAll("[data-cp]").forEach(e=>e.onclick=async()=>{try{await navigator.clipboard.writeText(e.dataset.cp);toast("Copied")}catch(x){}})}
+function buildPay(){REF="";const box=document.querySelector("#s3 .pay");box.insertAdjacentHTML("beforebegin",`<div class="amt"><label><input type="radio" name="amt" value="dep" checked>Deposit<small id="ad"></small></label><label><input type="radio" name="amt" value="full">Pay in full<small id="af"></small></label></div>`);
+ $("#ad").textContent=usd(dep())+" ("+CFG.DEPOSIT_PCT+"%)";$("#af").textContent=usd(total());
+ box.innerHTML=methods().map((x,i)=>`<label><input type="radio" name="pm" value="${x[0]}"${i?"":" checked"}><span>${x[1]}<br><small class="note">${x[2]}</small></span></label>`).join("");
+ box.insertAdjacentHTML("afterend",'<div id="pbox" class="f"></div>');document.querySelectorAll("[name=pm],[name=amt]").forEach(i=>i.onchange=panel);panel()}
+const _show=show;show=function(n){if(n==3){document.querySelectorAll(".amt,#pbox").forEach(e=>e.remove())}_show(n);if(n==3){buildPay();$("#demo").textContent=DEMO?"Demo mode: nothing is charged. In your live site this step records your payment reference for our team to verify.":"Your booking is saved first. The team verifies your payment and emails confirmation. "+CFG.CANCEL_POLICY}};
+verify=async function(){const code=[...$("#otp").children].map(i=>i.value).join(""),m=$("#m2");if(code.length<6){m.textContent="Enter all 6 digits.";return}
+ if(DEMO){if(code!=DEMO_CODE){m.textContent="Incorrect code. Try again.";return}}else{const{error}=await sb.auth.verifyOtp({email:$("#e").value.trim(),token:code,type:"email"});if(error){m.textContent="Incorrect or expired code. Request a new one.";return}}show(3)};
+pay=async function(){const m=document.querySelector("[name=pm]:checked").value,a=amtNow(),txn=($("#txn")||{value:""}).value.trim(),ref=REF||mkRef(),link=CFG.STRIPE_LINK;
+ if(m=="Bank transfer"&&!txn){$("#demo").textContent="Please enter your transfer receipt number so we can match your payment.";return}
+ let win=null;if(m=="Card"&&link)win=window.open("","_blank");
+ const base={package_id:cur.id,guest_name:$("#n").value.trim(),email:$("#e").value.trim(),phone:$("#p").value.trim(),travel_date:$("#d").value,guests:+$("#g").value,total:total(),method:m,status:m=="Invoice"?"deposit_pending":"payment_submitted",verified:true},ext={ref,pay_reference:txn||null,amount_due:a};
+ if(sb){let r=await sb.from("bookings").insert({...base,...ext}).select("id").single();if(r.error){r=await sb.from("bookings").insert(base).select("id").single();if(r.error){if(win)win.close();$("#demo").textContent="Booking could not be saved: "+r.error.message;return}ext.ref=r.data.id.slice(0,8).toUpperCase()}
+  if(m=="Card"&&CFG.PAY_URL&&!link){try{const x=await fetch(CFG.PAY_URL,{method:"POST",headers:{"Content-Type":"application/json",apikey:CFG.SUPABASE_ANON_KEY},body:JSON.stringify({booking_id:r.data.id,amount:a,method:m})});const j=await x.json();if(j.url){location.href=j.url;return}}catch(e){}}}
+ else{const row={...base,...ext,id:ref,created_at:new Date().toISOString()};BL.unshift(row);LS.s("pelpa_book",BL);DEMOROWS.unshift({id:ref,guest_name:row.guest_name,package_id:row.package_id,guests:row.guests,total:row.total,status:row.status,travel_date:row.travel_date})}
+ if(win)win.location.href=link+(link.includes("?")?"&":"?")+"client_reference_id="+encodeURIComponent(ext.ref)+"&prefilled_email="+encodeURIComponent(base.email);
+ try{localStorage.setItem("pelpa_last",JSON.stringify({ref:ext.ref,email:base.email}))}catch(e){}
+ $("#ok").innerHTML=`Thank you, ${esc(base.guest_name)}.<div class="rfx"><small>Your booking reference</small><b>${ext.ref}</b></div>${m=="Invoice"?"We will email payment instructions and hold your dates for 48 hours.":m=="Card"?"Finish your payment in the checkout tab. We match it to this reference and confirm by email.":"We will verify your payment and confirm by email."} Keep this reference and use <b>My booking</b> to check the status any time.`;REF="";show(4)};
+
+/* ---------- My booking ---------- */
+const lastB=LS.g("pelpa_last",{});
+function openMB(){$("#mbo").innerHTML="";$("#mbe").textContent="";$("#mbr").value=lastB.ref||"";$("#mbm").value=lastB.email||"";$("#mb").classList.add("on")}
+$("#mbB").onclick=openMB;
+$("#mbG").onclick=async()=>{const ref=$("#mbr").value.trim().toUpperCase(),em=$("#mbm").value.trim();if(!ref||!em){$("#mbe").textContent="Enter both your reference and email.";return}$("#mbe").textContent="";let b=null;
+ try{if(sb){const r=await sb.rpc("get_booking",{p_ref:ref,p_email:em});if(r.error)throw r.error;b=r.data}else b=BL.find(x=>x.ref==ref&&x.email.toLowerCase()==em.toLowerCase())||null}catch(e){$("#mbe").textContent="Could not look that up: "+(e.message||e);return}
+ if(!b){$("#mbo").innerHTML="";$("#mbe").textContent="No booking found for that reference and email.";return}
+ const p=PK.find(x=>x.id==b.package_id)||{name:b.package_id||"Your journey"},s=stBadge[b.status]||[b.status,""],paid=+b.paid_usd||(b.status=="paid"?b.total:0);
+ $("#mbo").innerHTML=`<div class="rfx"><small>${esc(b.ref||ref)}</small><b style="font-size:1.4rem">${esc(p.name)}</b><span class="sbd ${s[1]}">${s[0]}</span></div><div class="kp" style="flex-wrap:wrap"><div><b>${esc(b.travel_date)}</b>Departure</div><div><b>${b.guests}</b>Travellers</div><div><b>${usd(b.total)}</b>Total</div><div><b>${usd(Math.max(0,b.total-paid))}</b>Balance</div></div><p class="note">Questions? <a href="https://wa.me/${CFG.WHATSAPP}" target="_blank" rel="noopener" style="text-decoration:underline">WhatsApp</a> or <a href="mailto:${CFG.EMAIL}" style="text-decoration:underline">${CFG.EMAIL}</a> with your reference.</p>`};
+const mi=document.querySelector("nav ul");if(mi)mi.insertAdjacentHTML("beforeend",'<li class="mo"><a href="#" id="mbL">My booking</a></li>');$("#mbL").onclick=e=>{e.preventDefault();document.querySelector("nav").classList.remove("open");openMB()};
+const st=document.createElement("style");st.textContent="nav ul li.mo{display:none}@media(max-width:820px){nav ul li.mo{display:block}}";document.head.appendChild(st);
+
+/* ---------- admin: journey manager (add / edit / delete) ---------- */
+const _ad=admin;admin=async function(){await _ad();if(ADM||DEMO)pkMgr()};
+function pkMgr(){const c=$("#ac");if(!c||c.querySelector("#pkm"))return;const cats=[...new Set([...Object.keys(PALS),...PK.map(p=>p.cat)])];
+ c.insertAdjacentHTML("beforeend",`<div id="pkm"><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3 style="margin-bottom:4px">Journeys manager</h3><p class="note">Add, edit or remove journeys. Changes appear on the site straight away${DEMO?" (saved in this browser in demo mode)":""}.</p><div id="pkl">${PK.map(p=>`<div class="al" style="border-color:var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><span><b>${esc(p.name)}</b> · ${esc(p.cat)} · ${p.days} days · ${usd(p.price)}</span><span><button class="chip" data-pe="${esc(p.id)}">Edit</button> <button class="chip" data-pd="${esc(p.id)}">Delete</button></span></div>`).join("")}</div><button class="btn" id="pkn" style="margin-top:10px">+ Add journey</button><div id="pkf"></div></div>`);
+ $("#pkn").onclick=()=>pkForm(null,cats);c.querySelectorAll("[data-pe]").forEach(b=>b.onclick=()=>pkForm(PK.find(p=>p.id==b.dataset.pe),cats));
+ c.querySelectorAll("[data-pd]").forEach(b=>b.onclick=async()=>{if(!confirm("Delete this journey?"))return;const id=b.dataset.pd;PK.splice(PK.findIndex(p=>p.id==id),1);if(sb)await sb.from("packages").delete().eq("id",id);else LS.s("pelpa_pk_custom",PK.filter(p=>!BASE.has(p.id)||true).map(strip));render();admin()})}
+const BASE=new Set(PK.map(p=>p.id)),strip=p=>({id:p.id,name:p.name,cat:p.cat,days:p.days,price:p.price,region:p.region,blurb:p.blurb,highlights:p.highlights,c:p.c,premier:PREM.has(p.id),itin:p.itin||((DAYS[p.id]||[]).map(x=>x.join(" | ")).join("\n"))});
+function pkForm(p,cats){const n=!p;p=p||{name:"",cat:"Culture",days:5,price:1500,region:"",blurb:"",highlights:[],itin:""};const it=p.itin||(DAYS[p.id]||[]).map(x=>x.join(" | ")).join("\n");
+ $("#pkf").innerHTML=`<div class="pk-ed"><b>${n?"New journey":"Edit: "+esc(p.name)}</b><input id="fN" placeholder="Journey name" value="${esc(p.name)}"><div class="r2"><select id="fC">${cats.map(x=>`<option${x==p.cat?" selected":""}>${esc(x)}</option>`).join("")}</select><input id="fR" placeholder="Region (Paro, Thimphu…)" value="${esc(p.region)}"></div><div class="r2"><input id="fD" type="number" min="2" placeholder="Days" value="${p.days}"><input id="fP" type="number" min="0" placeholder="Price per person (USD)" value="${p.price}"></div><textarea id="fB" rows="3" placeholder="Short description">${esc(p.blurb)}</textarea><textarea id="fH" rows="3" placeholder="Highlights, one per line">${esc((p.highlights||[]).join("\n"))}</textarea><textarea id="fI" rows="6" placeholder="Itinerary, one day per line: Place | altitude in metres | description">${esc(it)}</textarea><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="fM" style="width:auto"${PREM.has(p.id)?" checked":""}> ★ Premier</label><p class="msg" id="fE"></p><div style="display:flex;gap:8px"><button class="btn ghost" id="fX">Cancel</button><button class="btn alt" id="fS">Save journey</button></div></div>`;
+ $("#fX").onclick=()=>$("#pkf").innerHTML="";$("#fS").onclick=async()=>{const name=$("#fN").value.trim();if(!name){$("#fE").textContent="Name is required.";return}
+  const id=p.id||(name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"j"+Date.now()),row={id,name,cat:$("#fC").value,days:+$("#fD").value||2,price:+$("#fP").value||0,region:$("#fR").value.trim(),blurb:$("#fB").value.trim(),highlights:$("#fH").value.split("\n").map(s=>s.trim()).filter(Boolean),itin:$("#fI").value.trim(),premier:$("#fM").checked};
+  if(row.premier)PREM.add(id);else PREM.delete(id);if(!PK.some(x=>x.id==id))row.c=PALS[row.cat]||"#14202b,#2e6fb7";adopt(row);
+  if(sb){const r=await sb.from("packages").upsert({id,name,cat:row.cat,days:row.days,price:row.price,region:row.region,blurb:row.blurb,highlights:row.highlights,itin:row.itin,premier:row.premier});if(r.error){const r2=await sb.from("packages").upsert({id,name,cat:row.cat,days:row.days,price:row.price,region:row.region,blurb:row.blurb,highlights:row.highlights});if(r2.error){$("#fE").textContent="Could not save: "+r2.error.message;return}}}else LS.s("pelpa_pk_custom",PK.map(strip));
+  render();toast("Journey saved");admin()}}
+render();
+})();
 </script>
 <script>(function(){var n=document.querySelector('nav'),b=document.getElementById('bgr');if(!n||!b)return;function c(){n.classList.remove('open');b.setAttribute('aria-expanded','false');b.textContent='☰'}b.addEventListener('click',function(e){e.stopPropagation();var o=n.classList.toggle('open');b.setAttribute('aria-expanded',o);b.textContent=o?'✕':'☰'});n.querySelectorAll('ul a').forEach(function(a){a.addEventListener('click',c)});document.addEventListener('click',function(e){if(!n.contains(e.target))c()});addEventListener('resize',function(){if(innerWidth>820)c()})})();</script>
 </body>
