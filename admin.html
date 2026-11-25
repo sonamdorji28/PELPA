@@ -168,7 +168,7 @@ const API={
 function clean(t,r){const o={...r};if(t=="packages"&&typeof o.highlights=="string")o.highlights=o.highlights.split("\n").filter(Boolean);delete o.c;return o}
 
 /* ---------- helpers ---------- */
-function toast(m){const e=document.createElement("div");e.className="toast gl";e.textContent=m;document.body.append(e);setTimeout(()=>e.remove(),2600)}
+function toast(m,ms){const e=document.createElement("div");e.className="toast gl";e.textContent=m;if(ms>5000)e.style.cssText="max-width:min(560px,92vw);border-radius:18px;text-align:center;color:var(--bad)";document.body.append(e);setTimeout(()=>e.remove(),ms||2600)}
 const money=n=>"$"+(+n||0).toLocaleString();
 const fd=d=>d?new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"-";
 const pkOf=id=>D.packages.find(p=>p.id==id)||{name:id||"-",days:5};
@@ -187,7 +187,7 @@ function pickImage(cb,max=1400){
  i.onchange=async()=>{const f=i.files[0];if(!f)return;
   try{const bmp=await createImageBitmap(f),k=Math.min(1,max/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
    const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.82));toast("Uploading picture...");cb(await API.upload(blob,f.name.replace(/\.\w+$/,"")+".jpg"))}
-  catch(e){toast("Could not use that picture: "+(e.message||e))}};
+  catch(e){const m=String(e.message||e);toast("Picture upload failed: "+m+(/row-level|polic|bucket|not found|denied|403|404/i.test(m)?" . Storage is not set up for admins: run the full setup SQL (it creates the \"site\" bucket and its rules)."  :""),12000)}};
  i.click()}
 const thumb=u=>u?`background-image:url("${String(u).replace(/"/g,"%22")}")`:"";
 
@@ -330,7 +330,7 @@ function pic(){
  `<h3>Site</h3><div class="grid">${tile("hero_bg","Hero background",1800,"Large photo behind the headline")}${tile("logo","Logo",400,"Square or wide logo")}${tile("flag_img","Prayer flag image",600,"Optional")}</div>
  <h3>Gallery tiles</h3><div class="grid">${[0,1,2,3,4,5].map(i=>{const g=G[i]||{};return`<div class="card gl" style="display:grid;gap:10px"><b>Tile ${i+1}</b><div class="img" style="${thumb(g.img)}">${g.img?"":esc(SAMPLE.gal[i]||"Default")}</div><label class="f"><span>Caption</span><input data-gc="${i}" value="${esc(g.cap||"")}" placeholder="${esc(SAMPLE.gal[i]||"")}"></label><div class="bar"><button class="btn s p" data-gu="${i}">Upload</button><button class="btn s" data-gl="${i}">Paste URL</button><button class="btn s" data-gx="${i}">Reset</button></div></div>`}).join("")}</div>
  <h3>Journey covers and team photos</h3><div class="card gl mut">Change journey covers in <a href="#" data-go="jr">Journeys</a> and guide or driver photos in <a href="#" data-go="tm">Team</a>.</div>`;
- const setK=async(k,v)=>{const e=await API.setting(k,v);toast(e||"Saved. The website shows it on the next load.");pic()};
+ const setK=async(k,v)=>{const e=await API.setting(k,v);if(e){toast("Could not save the picture setting: "+e+" . Run the full setup SQL (settings table and permissions).",12000);return}toast("Saved. Refresh the website to see it.");pic()};
  const gset=async(i,f)=>{const g=Array.from({length:6},(_,j)=>({...(Array.isArray(D.settings.gallery)?D.settings.gallery[j]:{})}));f(g[i]);const e=await API.setting("gallery",g);toast(e||"Saved");pic()};
  $$("[data-u]").forEach(b=>b.onclick=()=>pickImage(u=>setK(b.dataset.u,u),+b.dataset.sz));
  $$("[data-l]").forEach(b=>b.onclick=()=>{const u=prompt("Picture URL (https://...)");if(u)setK(b.dataset.l,u.trim())});
