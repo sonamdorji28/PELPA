@@ -29,3 +29,20 @@ grant select on member_stats to anon;
 insert into storage.buckets(id,name,public) values ('site','site',true) on conflict do nothing;
 drop policy if exists site_read on storage.objects; create policy site_read on storage.objects for select using (bucket_id='site');
 drop policy if exists site_write on storage.objects; create policy site_write on storage.objects for all using (bucket_id='site' and is_admin()) with check (bucket_id='site' and is_admin());
+
+-- Table access (newer Supabase projects do not grant this automatically; RLS above still decides who sees what)
+grant usage on schema public to anon, authenticated;
+grant select on packages, members, reviews, settings to anon;
+grant insert on bookings, enquiries, inquiries, reviews, members to anon;
+grant select on member_stats to anon;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant execute on function is_admin() to anon, authenticated;
+grant execute on function get_booking(text,text) to anon, authenticated;
+
+-- Itineraries used by the guest site route map
+create table if not exists itineraries(package_id text primary key,days jsonb);
+alter table itineraries enable row level security;
+drop policy if exists admin_all on itineraries; create policy admin_all on itineraries for all using (is_admin()) with check (is_admin());
+drop policy if exists pub_read on itineraries; create policy pub_read on itineraries for select using (true);
+grant select on itineraries to anon;
+grant select, insert, update, delete on itineraries to authenticated;
