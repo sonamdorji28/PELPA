@@ -1,6 +1,6 @@
 -- PELPA backend. Safe to run more than once. Paste into Supabase > SQL Editor > Run.
 create table if not exists admins(email text primary key);
-insert into admins(email) values ('pelpa_family@pelpa.bt') on conflict do nothing;
+insert into admins(email) values ('sonamdorji11914000599@gmail.com') on conflict do nothing;
 create or replace function is_admin() returns boolean language sql security definer stable set search_path=public as $$ select exists(select 1 from admins where lower(email)=lower(auth.jwt()->>'email')) $$;
 create table if not exists settings(key text primary key,value jsonb);
 create table if not exists members(id uuid primary key default gen_random_uuid(),role text,name text,years int,languages text,bio text,photo text,status text default 'pending',phone text,license_no text);
