@@ -198,7 +198,7 @@ $("#lf").onsubmit=async e=>{e.preventDefault();const u=$("#lu").value.trim(),p=$
  if(!READY)return;
  if(u!==CFG.USERNAME){er.textContent="Wrong username or password.";return}
  const r=await sb.auth.signInWithPassword({email:CFG.LOGIN_EMAIL,password:p});
- if(r.error){er.textContent="Wrong username or password.";return}
+ if(r.error){er.textContent=/invalid login/i.test(r.error.message)?"Supabase rejected this login for "+CFG.LOGIN_EMAIL+": wrong password, or that user does not exist yet.":"Supabase says: "+r.error.message;return}
  const a=await sb.rpc("is_admin");if(a.data!==true){await sb.auth.signOut();er.textContent="This account is not an admin. Run the setup SQL so its email is in the admins table.";return}
  start()};
 async function start(){$("#lg").hidden=true;$("#app").hidden=false;await API.load();nav();show()}
