@@ -6,7 +6,7 @@ window.PELPA_CFG={
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oa2Nyc3pybGF4bnl1aWlob2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNTUzNzEsImV4cCI6MjExMDkzMTM3MX0.uNK-t-b5bcBfvmNOZVmtBfsRGxUWM8M2vFooXWg_v9g",   // Settings > API > anon public
 
   // Admin login: username "Pelpa_Family" maps to this Supabase Auth user
-  LOGIN_EMAIL: "pelpa_family@pelpa.bt",
+  LOGIN_EMAIL: "sonamdorji11914000599@gmail.com",
 
   // Public site: contact and payments (the admin Content tab can override the contact details)
   EMAIL: "hello@pelpa.bt",
