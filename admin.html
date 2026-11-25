@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>PELPA Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c1c1e;--mut:#6c6c70;--g1:rgba(255,255,255,.52);--g2:rgba(255,255,255,.38);--gb:rgba(255,255,255,.7);--fill:rgba(120,120,128,.14);--sep:rgba(60,60,67,.16);--acc:#e9a118;--tint:#007aff;--maroon:#6b1523;--ok:#248a3d;--bad:#d70015;--warn:#b25000;--sh:0 8px 32px rgba(40,50,90,.16);--bg:#eef1f6;--a1:#ffb340;--a2:#5ac8fa;--a3:#ff6b8a;--a4:#a78bfa}
+@media(prefers-color-scheme:dark){:root:not([data-t=light]){--ink:#f5f5f7;--mut:#a1a1a6;--g1:rgba(40,44,60,.5);--g2:rgba(40,44,60,.36);--gb:rgba(255,255,255,.16);--fill:rgba(160,160,170,.18);--sep:rgba(255,255,255,.14);--ok:#30d158;--bad:#ff453a;--warn:#ffd60a;--sh:0 8px 32px rgba(0,0,0,.5);--bg:#0b0d16}}
+:root[data-t=dark]{--ink:#f5f5f7;--mut:#a1a1a6;--g1:rgba(40,44,60,.5);--g2:rgba(40,44,60,.36);--gb:rgba(255,255,255,.16);--fill:rgba(160,160,170,.18);--sep:rgba(255,255,255,.14);--ok:#30d158;--bad:#ff453a;--warn:#ffd60a;--sh:0 8px 32px rgba(0,0,0,.5);--bg:#0b0d16}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:400 16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Manrope,system-ui,sans-serif;letter-spacing:-.01em;color:var(--ink);background:var(--bg);min-height:100vh;overflow-x:clip}
+.aur{position:fixed;inset:0;z-index:-1;overflow:hidden;background:var(--bg)}
+.aur i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.8;animation:fl 26s ease-in-out infinite alternate}
+.aur i:nth-child(1){width:55vmax;height:55vmax;left:-14vmax;top:-16vmax;background:var(--a1)}
+.aur i:nth-child(2){width:50vmax;height:50vmax;right:-14vmax;top:4vmax;background:var(--a2);animation-delay:-8s}
+.aur i:nth-child(3){width:46vmax;height:46vmax;left:18vmax;bottom:-24vmax;background:var(--a3);animation-delay:-14s}
+.aur i:nth-child(4){width:34vmax;height:34vmax;right:8vmax;bottom:-10vmax;background:var(--a4);animation-delay:-4s}
+@media(prefers-color-scheme:dark){:root:not([data-t=light]) .aur i{opacity:.34}}
+:root[data-t=dark] .aur i{opacity:.34}
+@keyframes fl{to{transform:translate(7vmax,5vmax) scale(1.18)}}
+@media(prefers-reduced-motion:reduce){.aur i{animation:none}}
+.gl{position:relative;background:var(--g1);backdrop-filter:blur(34px) saturate(190%);-webkit-backdrop-filter:blur(34px) saturate(190%);border:1px solid var(--gb);border-radius:26px;box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,.55)}
+.gl2{background:var(--g2);backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%);border:1px solid var(--gb);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+h1,h2,h3{margin:0;font-family:inherit;line-height:1.12;letter-spacing:-.025em}
+h2{font-size:clamp(1.9rem,3.4vw,2.4rem);font-weight:800}h3{font-size:1.2rem;font-weight:700}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 55%,transparent);outline-offset:2px}
+.mut{color:var(--mut)}.sm{font-size:13px}
+button,input,select,textarea{font:inherit;color:inherit;letter-spacing:inherit}
+.btn{border:0;background:var(--fill);padding:10px 18px;border-radius:99px;cursor:pointer;font-weight:600;font-size:15px;min-height:44px;transition:transform .15s,background .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:hover{background:color-mix(in srgb,var(--fill) 70%,var(--ink) 8%)}.btn:active{transform:scale(.96)}
+.btn.p{background:var(--acc);color:#201400}.btn.p:hover{background:#ffb92e}
+.btn.d{color:var(--bad)}.btn.s{padding:6px 14px;min-height:34px;font-size:14px}
+input,select,textarea{width:100%;background:var(--fill);border:1.5px solid transparent;border-radius:14px;padding:11px 14px;min-height:46px;outline:none;transition:.15s}
+input:focus,select:focus,textarea:focus{background:var(--g1);border-color:var(--tint);box-shadow:0 0 0 4px color-mix(in srgb,var(--tint) 20%,transparent)}
+textarea{min-height:88px;resize:vertical}
+select option{color:#1c1c1e}
+label.f{display:grid;gap:6px;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;min-width:0}
+label.f>*:not(span){text-transform:none;letter-spacing:-.01em;font-weight:400;color:var(--ink);font-size:16px}
+.row{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}
+.chk{display:flex!important;align-items:center;gap:10px;text-transform:none!important}.chk input{width:22px;height:22px;min-height:0;accent-color:var(--ok)}
+#lg{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(180deg,#0e1a28 0%,#2a3b66 45%,#e9a118 130%);color:#f4f1ea;position:relative;overflow:hidden}
+#lg:before,#lg:after{content:"";position:absolute;border-radius:50%;filter:blur(70px);opacity:.55}
+#lg:before{width:60vmax;height:60vmax;left:-20vmax;bottom:-30vmax;background:#ff6b8a}#lg:after{width:46vmax;height:46vmax;right:-14vmax;top:-12vmax;background:#5ac8fa}
+#lg .fl{position:absolute;top:60px;left:0;right:0}
+#lg .gl{width:min(400px,100%);padding:30px;z-index:2;color:var(--ink);background:rgba(255,255,255,.55)}
+@media(prefers-color-scheme:dark){:root:not([data-t=light]) #lg .gl{background:rgba(30,34,50,.55)}}
+#lg h1{font-size:2.2rem;font-weight:800;margin:10px 0 6px}
+.logo{font:800 1.55rem Fraunces,Georgia,serif;letter-spacing:.04em;line-height:1}.logo i{color:var(--acc);font-style:normal}
+.flagbar{height:5px;border-radius:99px;background:linear-gradient(90deg,#2e6fb7 0 20%,#f4f1ea 20% 40%,#c8312f 40% 60%,#2f8a4f 60% 80%,#e9a118 80%)}
+.flags{display:block;width:100%;height:70px}.flags path{fill:none;stroke:#ffffff77;stroke-width:1.5}.flags rect{animation:sway 3.4s ease-in-out infinite;transform-origin:top center;transform-box:fill-box}.flags rect:nth-child(5n+2){animation-delay:.4s}.flags rect:nth-child(5n+3){animation-delay:.9s}.flags rect:nth-child(5n+4){animation-delay:1.3s}@keyframes sway{50%{transform:skewX(-9deg) scaleY(.94)}}
+.err{color:var(--bad);font-weight:600;min-height:20px;font-size:13px}
+#app{display:grid;grid-template-columns:250px minmax(0,1fr);gap:20px;padding:20px;max-width:1500px;margin:auto}
+#side{position:sticky;top:20px;align-self:start;padding:14px;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;max-height:calc(100vh - 40px);overflow:auto}
+#side .brand{padding:6px 8px 14px}
+.tab{display:flex;gap:12px;align-items:center;border:0;background:none;padding:10px 12px;border-radius:14px;cursor:pointer;font-weight:600;font-size:15px;text-align:left;width:100%;white-space:nowrap;transition:.15s}
+.tab .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:16px;background:var(--fill);flex:none}
+.tab:hover{background:var(--fill)}
+.tab[aria-selected=true]{background:var(--g1);box-shadow:0 2px 12px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.6)}
+.tab[aria-selected=true] .ic{background:var(--acc);color:#201400}
+.tab b{margin-left:auto;background:var(--bad);color:#fff;border-radius:99px;font-size:11px;padding:1px 8px}
+main{min-width:0;display:grid;gap:18px;align-content:start}
+.hd{display:flex;gap:12px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.card{padding:20px;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{padding:16px 18px}.kpi .n{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}.kpi .l{font-size:12px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.tw{overflow-x:auto;border-radius:16px}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:15px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600;padding:8px 12px}
+td{padding:12px;border-top:1px solid var(--sep);vertical-align:middle}
+tr.cl{cursor:pointer;transition:.12s}tr.cl:hover td{background:var(--fill)}
+.pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:12px;font-weight:600;background:var(--fill);white-space:nowrap}
+.pill.ok{color:var(--ok)}.pill.no{color:var(--bad)}.pill.wa{color:var(--warn)}
+.stars{color:#ff9f0a;letter-spacing:1px;white-space:nowrap}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))}
+.img{aspect-ratio:16/10;border-radius:18px;background:var(--fill) center/cover no-repeat;display:grid;place-items:center;color:var(--mut);font-size:13px;box-shadow:inset 0 0 0 1px var(--sep)}
+.img.sq{aspect-ratio:1;max-width:120px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.bar>input,.bar>select{width:auto;flex:1 1 150px}
+.att{display:grid;gap:10px}.att>div{padding:12px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+#dr{position:fixed;inset:0;z-index:30;display:flex;justify-content:flex-end;background:rgba(10,14,30,.32);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fi .2s}
+#dr>.gl{width:min(560px,100%);height:calc(100% - 24px);margin:12px;overflow:auto;padding:24px;display:grid;gap:14px;align-content:start;background:var(--g1);animation:sl .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes fi{from{opacity:0}}@keyframes sl{from{transform:translateX(30px);opacity:0}}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:60;padding:12px 20px;border-radius:99px;font-weight:600;font-size:14px}
+pre{white-space:pre-wrap;word-break:break-all;font:12px/1.5 ui-monospace,Menlo,monospace;max-height:420px;overflow:auto;padding:14px;margin:0}
+.warn{color:var(--warn);font-weight:600;font-size:13px}
+a{color:var(--tint)}
+@media(max-width:900px){
+ #app{grid-template-columns:minmax(0,1fr);padding:14px 14px 110px;gap:14px}
+ #side{position:fixed;top:auto;bottom:max(10px,env(safe-area-inset-bottom));left:10px;right:10px;z-index:20;padding:6px;display:flex;overflow-x:auto;gap:2px;max-height:none;border-radius:28px;scrollbar-width:none}
+ #side::-webkit-scrollbar{display:none}
+ #side .brand,#side .foot{display:none!important}
+ .tab{flex-direction:column;gap:2px;width:auto;min-width:68px;padding:7px 8px;font-size:10.5px;border-radius:20px;text-align:center}
+ .tab .ic{background:none;width:auto;height:auto;font-size:20px}.tab[aria-selected=true] .ic{background:none}
+ .tab b{position:absolute;margin:0;transform:translate(16px,-4px);font-size:10px;padding:0 6px}
+ .tab{position:relative}
+ h2{font-size:1.9rem}.card{padding:16px}
+ .mtop{display:flex!important}
+ #dr{align-items:flex-end}#dr>.gl{width:100%;height:90vh;margin:0;border-radius:28px 28px 0 0;animation:su .32s cubic-bezier(.2,.8,.2,1)}
+ @keyframes su{from{transform:translateY(40px);opacity:0}}
+ #dr>.gl:before{content:"";display:block;width:40px;height:5px;border-radius:9px;background:var(--sep);margin:-10px auto 4px}
+ .toast{bottom:110px}
+}
+.mtop{display:none;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<div class="aur"><i></i><i></i><i></i><i></i></div>
+
+<section id="lg">
+ <svg class="flags fl" viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 8 Q300 70 600 30 T1200 12"/><rect x="30" y="16" width="26" height="34" fill="#2e6fb7"/><rect x="88" y="36" width="26" height="34" fill="#f4f1ea"/><rect x="146" y="42" width="26" height="34" fill="#c8312f"/><rect x="204" y="46" width="26" height="34" fill="#2f8a4f"/><rect x="262" y="30" width="26" height="34" fill="#e9a118"/><rect x="320" y="26" width="26" height="34" fill="#2e6fb7"/><rect x="378" y="22" width="26" height="34" fill="#f4f1ea"/><rect x="436" y="22" width="26" height="34" fill="#c8312f"/><rect x="494" y="30" width="26" height="34" fill="#2f8a4f"/><rect x="552" y="48" width="26" height="34" fill="#e9a118"/><rect x="610" y="40" width="26" height="34" fill="#2e6fb7"/><rect x="668" y="36" width="26" height="34" fill="#f4f1ea"/><rect x="726" y="20" width="26" height="34" fill="#c8312f"/><rect x="784" y="28" width="26" height="34" fill="#2f8a4f"/><rect x="842" y="16" width="26" height="34" fill="#e9a118"/><rect x="900" y="36" width="26" height="34" fill="#2e6fb7"/><rect x="958" y="42" width="26" height="34" fill="#f4f1ea"/><rect x="1016" y="46" width="26" height="34" fill="#c8312f"/><rect x="1074" y="30" width="26" height="34" fill="#2f8a4f"/><rect x="1132" y="26" width="26" height="34" fill="#e9a118"/></svg>
+ <form class="gl" id="lf" autocomplete="on">
+  <div class="logo" style="color:#14202b">PELP<i>A</i></div><div class="flagbar" style="margin:12px 0 4px"></div>
+  <h1>Admin</h1>
+  <p class="mut" style="margin:0 0 16px">Premier Experiences, Leisure &amp; Professional Adventures. Sign in to manage bookings, guides, journeys and the website.</p>
+  <label class="f"><span>Username</span><input id="lu" autocomplete="username" required autocapitalize="off"></label>
+  <label class="f" style="margin-top:10px"><span>Password</span><input id="lp" type="password" autocomplete="current-password" required></label>
+  <div class="err" id="le" role="alert"></div>
+  <button class="btn p" style="width:100%;margin-top:6px">Sign in</button>
+  <p class="mut sm" id="lm" style="margin:14px 0 0"></p>
+ </form>
+</section>
+
+<div id="app" hidden>
+ <nav id="side" class="gl" role="tablist" aria-label="Admin sections"></nav>
+ <div style="min-width:0;display:grid;gap:14px;align-content:start"><div class="mtop" id="mtop"></div><main id="mn"></main></div>
+</div>
+<div id="dr" hidden></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* Keys and settings come from config.js (the same file the public site uses). */
+const CFG=Object.assign({SUPABASE_URL:"",SUPABASE_ANON_KEY:"",LOGIN_EMAIL:"pelpa_family@pelpa.bt",USERNAME:"Pelpa_Family",SITE_URL:"index.html"},window.PELPA_CFG||{});
+const SAMPLE={"pk": [{"id": "cult", "name": "Classic Cultural Bhutan", "cat": "Culture", "days": 6, "price": 1450, "region": "Paro, Thimphu, Punakha", "blurb": "Dzongs, monasteries and village life along the classic western route.", "highlights": ["Tiger's Nest hike, Paro", "Punakha Dzong and suspension bridge", "Thimphu markets and Buddha Dordenma"], "itin": "Paro | 2200 | Fly in over the Himalaya, Paro Dzong and the National Museum\nThimphu | 2320 | Buddha Dordenma, weekend market, Tashichho Dzong\nDochula Pass | 3100 | 108 chortens and mountain views on the way east\nPunakha | 1300 | Dzong at the river confluence, Chimi Lhakhang\nParo | 2200 | Back over Dochula, farmhouse dinner with a hot stone bath\nTiger's Nest | 3120 | Hike to Taktsang monastery, then departure"}, {"id": "trek", "name": "Druk Path Trek", "cat": "Trek", "days": 7, "price": 1890, "region": "Paro to Thimphu", "blurb": "A high-ridge trek past alpine lakes and rhododendron forests.", "highlights": ["Camping with a trek crew", "Jimilang Tsho lake", "Best in April–May and Oct–Nov"], "itin": "Paro | 2200 | Acclimatise and visit Paro Dzong\nJele Dzong | 3490 | Climb through blue pine forest to a hilltop fort\nJangchulakha | 3770 | Ridge walk past yak herders\nJimilang Tsho | 3880 | Lake camp with a clear-morning Himalayan view\nSimkotra Tsho | 4110 | Highest camp on the route\nPhajoding | 3750 | Descend to a hilltop monastery\nThimphu | 2320 | Hot shower and farewell dinner"}, {"id": "fest", "name": "Paro Tshechu Festival", "cat": "Festival", "days": 5, "price": 1620, "region": "Paro, Thimphu", "blurb": "Masked cham dances and a giant thangka unfurled at dawn.", "highlights": ["Reserved festival seating", "Local host dinner", "Dates follow the lunar calendar (spring)"], "itin": "Paro | 2200 | Arrive and walk the old town\nParo Tshechu | 2200 | Mask dances in the dzong courtyard\nParo Tshechu | 2200 | Dawn thangka unveiling and local host dinner\nThimphu | 2320 | Crafts, markets and the takin reserve\nDochula Pass | 3100 | Mountain views and departure"}, {"id": "well", "name": "Himalayan Wellness Retreat", "cat": "Wellness", "days": 5, "price": 1780, "region": "Bumthang, Paro", "blurb": "Hot stone baths, meditation with a lama and slow valley walks.", "highlights": ["Traditional hot stone bath", "Guided meditation", "Farm-to-table meals"], "itin": "Paro | 2200 | Arrive, tea ritual and gentle valley walk\nJakar, Bumthang | 2600 | Domestic flight, temples and a hot stone bath\nTang Valley | 2800 | Meditation with a lama and village walk\nJakar, Bumthang | 2600 | Cooking class and farm lunch\nParo | 2200 | Spa morning and departure"}, {"id": "lux", "name": "Luxury Bhutan Escape", "cat": "Luxury", "days": 8, "price": 3950, "region": "Paro, Punakha, Phobjikha", "blurb": "Five-star lodges, private tours and a crane valley stay.", "highlights": ["Premium lodge stays", "Private cultural experiences", "Black-necked cranes, Nov–Feb"], "itin": "Paro | 2200 | Private arrival and lodge welcome\nThimphu | 2320 | Private tour of dzong and royal craft studios\nDochula Pass | 3100 | Breakfast with a view, drive east\nPunakha | 1300 | River-side dzong and a rafting option\nPhobjikha | 3000 | Crane valley walk and nature trail\nPhobjikha | 3000 | Gangtey monastery and a free afternoon\nParo | 2200 | Scenic drive back and farewell dinner\nTiger's Nest | 3120 | Private guided hike and departure"}, {"id": "corp", "name": "Corporate Retreat Thimphu", "cat": "Corporate", "days": 4, "price": 1350, "region": "Thimphu, Paro", "blurb": "Team offsites with workshop space, archery and cultural evenings.", "highlights": ["Meeting venue and AV", "Team activities", "Quotes for 6–60 people"], "itin": "Thimphu | 2320 | Arrival, venue briefing and welcome dinner\nThimphu | 2320 | Workshop day with an archery break\nDochula Pass | 3100 | Team hike and cultural evening\nParo | 2200 | Farewell lunch and departure"}, {"id": "nest", "name": "Tiger's Nest Escape", "cat": "Culture", "days": 4, "price": 980, "region": "Paro, Haa", "blurb": "A short, soulful long weekend: the iconic cliff monastery and a hidden valley.", "highlights": ["Sunrise hike to Taktsang", "Haa Valley over Chele La", "Hot stone bath at a farmhouse"], "itin": "Paro | 2200 | Arrive, Kyichu Lhakhang and a welcome dinner\nTiger's Nest | 3120 | The big hike, about 5 to 6 hours round trip\nHaa Valley | 3900 | Over Chele La to the quiet, almost hidden Haa\nParo | 2200 | Textile market stroll and departure"}, {"id": "bum", "name": "Bumthang: Spiritual Heartland", "cat": "Culture", "days": 9, "price": 2350, "region": "Thimphu, Trongsa, Bumthang", "blurb": "Ancient temples and cheese farms in the quiet central valleys.", "highlights": ["Trongsa Dzong, seat of kings", "Jambay and Kurjey Lhakhang", "Pele La pass, local honey and cheese"], "itin": "Paro | 2200 | Arrive and a farm-to-table dinner\nThimphu | 2320 | Capital sights and a paper-making workshop\nPunakha | 1300 | Dochula Pass and Punakha Dzong\nGangtey | 3000 | Cross to the glacial valley of Phobjikha\nTrongsa | 2200 | Over Pele La to the great dzong\nBumthang | 2600 | Drive through Yotong La, temples at Jakar\nBumthang | 2600 | Tamshing Monastery and a village walk\nBumthang | 2600 | Scenic flight or drive back toward Paro\nParo | 2200 | Farewell dinner and departure"}, {"id": "film", "name": "Film & Photography Expedition", "cat": "Corporate", "days": 8, "price": 2750, "region": "Paro, Thimphu, Punakha, Bumthang", "blurb": "Permits, local fixers and a schedule built around golden-hour light.", "highlights": ["Permit support and a local fixer", "Dawn and dusk shooting schedule", "Vehicles sized for kit and crew"], "itin": "Paro | 2200 | Gear check, briefing and location scouting\nParo | 2200 | Orchards, bridges and the old dzong at golden hour\nThimphu | 2320 | Markets, craft studios and street portraits\nPunakha | 1300 | Mountain panoramas and the great river dzong\nPhobjikha | 3000 | Glacial valley landscapes and wildlife\nTrongsa | 2200 | The cliff-hung dzong and gorge light\nBumthang | 2600 | Temples, farms and quiet valley portraits\nParo | 2200 | Backup day and transfers"}], "gal": ["Tiger's Nest, Paro · 3,120 m", "Punakha Dzong · 1,300 m", "Dochula Pass · 3,100 m", "Phobjikha cranes · 3,000 m", "Tshechu masks · Paro", "Jimilang Tsho · 3,880 m"]};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const READY=!!(CFG.SUPABASE_URL&&CFG.SUPABASE_ANON_KEY&&window.supabase);
+const sb=READY?supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY):null;
+const ST={deposit_pending:"Awaiting deposit",payment_submitted:"Payment to verify",deposit_paid:"Deposit paid",paid:"Paid in full",confirmed:"Confirmed",completed:"Completed",cancelled:"Cancelled"};
+const D={bookings:[],packages:[],members:[],reviews:[],enquiries:[],settings:{}};
+let tab="ov",flt={q:"",st:"",pk:""};
+
+/* ---------- data layer: Supabase (the same backend the public site uses) ---------- */
+const err=e=>e?e.message:null;
+const API={
+ async load(){
+  const g=async t=>{const r=await sb.from(t).select("*");return r.error?[]:(r.data||[])};
+  D.bookings=(await g("bookings")).sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
+  D.packages=await g("packages");D.members=await g("members");D.reviews=await g("reviews");
+  D.enquiries=[...(await g("enquiries")),...(await g("inquiries"))];
+  const s=await g("settings");D.settings={};s.forEach(r=>D.settings[r.key]=r.value);
+ },
+ async save(t,row){const r=await sb.from(t).upsert(clean(t,row));return err(r.error)},
+ async del(t,id){const r=await sb.from(t).delete().eq("id",id);return err(r.error)},
+ async setting(k,v){D.settings[k]=v;const r=await sb.from("settings").upsert({key:k,value:v});return err(r.error)},
+ async unset(k){delete D.settings[k];const r=await sb.from("settings").delete().eq("key",k);return err(r.error)},
+ async upload(blob,name){
+  const path="img/"+Date.now()+"-"+name.replace(/[^\w.-]/g,"_");
+  const r=await sb.storage.from("site").upload(path,blob,{contentType:blob.type,upsert:true});
+  if(r.error)throw r.error;return sb.storage.from("site").getPublicUrl(path).data.publicUrl
+ }
+};
+function clean(t,r){const o={...r};if(t=="packages"&&typeof o.highlights=="string")o.highlights=o.highlights.split("\n").filter(Boolean);delete o.c;return o}
+
+/* ---------- helpers ---------- */
+function toast(m){const e=document.createElement("div");e.className="toast gl";e.textContent=m;document.body.append(e);setTimeout(()=>e.remove(),2600)}
+const money=n=>"$"+(+n||0).toLocaleString();
+const fd=d=>d?new Date(d).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"-";
+const pkOf=id=>D.packages.find(p=>p.id==id)||{name:id||"-",days:5};
+const mem=id=>D.members.find(m=>m.id==id);
+const approved=r=>D.members.filter(m=>m.role==r&&(m.status||"approved")=="approved");
+function avg(id){const r=D.reviews.filter(x=>x.member_id==id);return{n:r.length,a:r.length?r.reduce((s,x)=>s+(+x.stars||0),0)/r.length:0}}
+const stars=n=>"★".repeat(Math.round(n))+"☆".repeat(5-Math.round(n));
+const end=b=>{if(!b.travel_date)return null;const d=new Date(b.travel_date);d.setDate(d.getDate()+(+pkOf(b.package_id).days||1)-1);return d};
+const live=b=>b.status!="cancelled";
+function clash(b,mid){if(!mid||!b.travel_date)return[];const s=new Date(b.travel_date),e=end(b);return D.bookings.filter(o=>o.id!=b.id&&live(o)&&(o.guide_id==mid||o.driver_id==mid)&&o.travel_date&&new Date(o.travel_date)<=e&&end(o)>=s)}
+const upcoming=b=>b.travel_date&&new Date(b.travel_date)>=new Date(new Date().toDateString())&&live(b);
+
+/* image picker: shrink in browser, then store as a data URL (demo) or in the Supabase "site" bucket */
+function pickImage(cb,max=1400){
+ const i=document.createElement("input");i.type="file";i.accept="image/*";
+ i.onchange=async()=>{const f=i.files[0];if(!f)return;
+  try{const bmp=await createImageBitmap(f),k=Math.min(1,max/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+   const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.82));toast("Uploading picture...");cb(await API.upload(blob,f.name.replace(/\.\w+$/,"")+".jpg"))}
+  catch(e){toast("Could not use that picture: "+(e.message||e))}};
+ i.click()}
+const thumb=u=>u?`background-image:url("${String(u).replace(/"/g,"%22")}")`:"";
+
+/* ---------- login ---------- */
+$("#lm").textContent=READY?"Secure sign-in. Only approved admin accounts can change data.":"";
+if(!READY){$("#le").textContent="Not connected: open config.js and paste your Supabase URL and anon key (see the README).";$("#lf button").disabled=true}
+$("#lf").onsubmit=async e=>{e.preventDefault();const u=$("#lu").value.trim(),p=$("#lp").value,er=$("#le");er.textContent="";
+ if(!READY)return;
+ if(u!==CFG.USERNAME){er.textContent="Wrong username or password.";return}
+ const r=await sb.auth.signInWithPassword({email:CFG.LOGIN_EMAIL,password:p});
+ if(r.error){er.textContent="Wrong username or password.";return}
+ const a=await sb.rpc("is_admin");if(a.data!==true){await sb.auth.signOut();er.textContent="This account is not an admin. Run the setup SQL so its email is in the admins table.";return}
+ start()};
+async function start(){$("#lg").hidden=true;$("#app").hidden=false;await API.load();nav();show()}
+async function logout(){await sb.auth.signOut();location.reload()}
+(async()=>{if(!READY)return;try{const ss=(await sb.auth.getSession()).data.session;if(ss&&(await sb.rpc("is_admin")).data===true)start()}catch(e){}})();
+
+/* ---------- nav ---------- */
+const TABS=[["ov","Overview","▦"],["bk","Bookings","🎫"],["tm","Team","🧭"],["rv","Ratings & feedback","★"],["jr","Journeys","⛰"],["pic","Pictures","🖼"],["ct","Content","✎"],["eq","Enquiries","✉"],["su","Setup","⚙"]];
+function badge(t){if(t=="bk")return D.bookings.filter(b=>b.status=="payment_submitted").length;if(t=="rv")return D.reviews.filter(r=>+r.stars<=2&&!r.resolved).length;if(t=="tm")return D.members.filter(m=>m.status=="pending").length;return 0}
+function nav(){$("#side").innerHTML=`<div class="brand" style="display:grid;gap:8px"><div class="logo">PELP<i>A</i></div><div class="flagbar"></div><div class="mut sm">Admin console</div></div>`+
+ TABS.map(([k,l,i])=>`<button class="tab" role="tab" aria-selected="${k==tab}" data-t="${k}"><span class="ic" aria-hidden="true">${i}</span><span>${l}</span>${badge(k)?`<b>${badge(k)}</b>`:""}</button>`).join("")+
+ `<div class="foot" style="display:grid;gap:6px;margin-top:10px"><a class="btn s" style="text-align:center;text-decoration:none;color:inherit" href="${esc(CFG.SITE_URL)}" target="_blank" rel="noopener">View website ↗</a><button class="btn s" id="th">Theme</button><button class="btn s d" id="lo">Sign out</button></div>`;
+ $$("#side .tab").forEach(b=>b.onclick=()=>{tab=b.dataset.t;nav();show();scrollTo(0,0)});
+ $("#mtop").innerHTML=`<a class="btn s" style="text-decoration:none;color:inherit" href="${esc(CFG.SITE_URL)}" target="_blank" rel="noopener">Website ↗</a><button class="btn s tg">Theme</button><button class="btn s d so">Sign out</button>`;
+ $$(".so,#lo").forEach(b=>b.onclick=logout);$$(".tg,#th").forEach(b=>b.onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).getPropertyValue("--bg").trim()=="#0b0d16"||r.dataset.t=="dark";r.dataset.t=d?"light":"dark"})}
+function show(){({ov,bk,tm,rv,jr,pic,ct,eq,su})[tab]()}
+const hdr=(t,s,x="")=>`<div class="hd"><div><h2>${t}</h2><div class="mut sm">${s||""}</div></div><div class="bar">${x}</div></div>`;
+const reload=async()=>{await API.load();nav();show()};
+
+/* ---------- Overview ---------- */
+function ov(){
+ const bs=D.bookings,paid=bs.reduce((s,b)=>s+(+b.paid_usd||0),0),pend=bs.filter(b=>b.status=="payment_submitted").length,
+  noteam=bs.filter(b=>upcoming(b)&&(!b.guide_id||!b.driver_id)),low=D.reviews.filter(r=>+r.stars<=2&&!r.resolved),
+  rt=D.reviews.length?D.reviews.reduce((s,r)=>s+(+r.stars||0),0)/D.reviews.length:0;
+ const A=[];
+ noteam.slice(0,8).forEach(b=>A.push(`<div class="gl2"><span><b>${esc(b.guest_name)}</b> departs ${fd(b.travel_date)}: ${!b.guide_id?"no guide":""}${!b.guide_id&&!b.driver_id?" and ":""}${!b.driver_id?"no driver":""} assigned</span><button class="btn s p" data-b="${esc(b.id)}">Assign</button></div>`));
+ bs.filter(b=>b.status=="payment_submitted").slice(0,6).forEach(b=>A.push(`<div class="gl2"><span>Verify payment of <b>${esc(b.guest_name)}</b> (${esc(b.method||"")}, ref ${esc(b.pay_reference||"none")})</span><button class="btn s" data-b="${esc(b.id)}">Open</button></div>`));
+ low.slice(0,6).forEach(r=>A.push(`<div class="gl2"><span><span class="stars">${stars(r.stars)}</span> low rating for <b>${esc((mem(r.member_id)||{}).name||"member")}</b>: "${esc(String(r.comment||"").slice(0,70))}"</span><button class="btn s" data-go="rv">Review</button></div>`));
+ $("#mn").innerHTML=hdr("Overview","Everything that needs you today",`<button class="btn" id="rf">Refresh</button>`)+
+ `<div class="kpis"><div class="kpi gl"><div class="n">${bs.length}</div><div class="l">Bookings</div></div><div class="kpi gl"><div class="n">${money(bs.filter(live).reduce((s,b)=>s+(+b.total||0),0))}</div><div class="l">Booked value</div></div><div class="kpi gl"><div class="n">${money(paid)}</div><div class="l">Payments recorded</div></div><div class="kpi gl"><div class="n">${pend}</div><div class="l">To verify</div></div><div class="kpi gl"><div class="n">${rt?rt.toFixed(1)+" ★":"-"}</div><div class="l">Guest rating (${D.reviews.length})</div></div></div>
+ <div class="card gl"><h3 style="margin-bottom:12px">Needs attention</h3><div class="att">${A.join("")||'<p class="mut" style="margin:0">All clear. No unassigned departures, pending payments or low ratings.</p>'}</div></div>
+ <div class="card gl"><h3 style="margin-bottom:12px">Latest bookings</h3>${bkTable(bs.slice(0,6))}</div>`;
+ $("#rf").onclick=reload;bindRows();$$("[data-b]").forEach(b=>b.onclick=e=>{e.stopPropagation();drawer(b.dataset.b)});$$("[data-go]").forEach(b=>b.onclick=()=>{tab=b.dataset.go;nav();show()})}
+
+/* ---------- Bookings ---------- */
+function bkTable(a){if(!a.length)return'<p class="mut">No bookings yet. They appear here as soon as guests book on the website.</p>';
+ return`<div class="tw"><table><thead><tr><th>Guest</th><th>Journey</th><th>Departs</th><th>Total</th><th>Status</th><th>Guide</th><th>Driver</th></tr></thead><tbody>${a.map(b=>`<tr class="cl" data-r="${esc(b.id)}"><td><b>${esc(b.guest_name)}</b><div class="mut sm">${esc(b.ref||b.id)}</div></td><td>${esc(pkOf(b.package_id).name)}<div class="mut sm">${b.guests||1} guest${b.guests>1?"s":""}</div></td><td>${fd(b.travel_date)}</td><td>${money(b.total)}<div class="mut sm">paid ${money(b.paid_usd)}</div></td><td><span class="pill ${b.status=="paid"||b.status=="confirmed"||b.status=="completed"||b.status=="deposit_paid"?"ok":b.status=="cancelled"?"no":"wa"}">${ST[b.status]||esc(b.status)}</span></td><td>${b.guide_id?esc((mem(b.guide_id)||{}).name||"?"):'<span class="pill wa">Unassigned</span>'}</td><td>${b.driver_id?esc((mem(b.driver_id)||{}).name||"?"):'<span class="pill wa">Unassigned</span>'}</td></tr>`).join("")}</tbody></table></div>`}
+function bindRows(){$$("tr[data-r]").forEach(r=>r.onclick=()=>drawer(r.dataset.r))}
+function bk(){
+ $("#mn").innerHTML=hdr("Bookings","Open a booking to verify payment and assign the guide and driver",`<button class="btn" id="ex">Export CSV</button>`)+
+ `<div class="card gl"><div class="bar" style="margin-bottom:12px"><input id="bq" placeholder="Search guest, email, reference" value="${esc(flt.q)}"><select id="bs"><option value="">All statuses</option>${Object.entries(ST).map(([k,v])=>`<option value="${k}" ${flt.st==k?"selected":""}>${v}</option>`).join("")}</select><select id="bp"><option value="">All journeys</option>${D.packages.map(p=>`<option value="${esc(p.id)}" ${flt.pk==p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div><div id="bt"></div></div>`;
+ const draw=()=>{const q=flt.q.toLowerCase(),a=D.bookings.filter(b=>(!flt.st||b.status==flt.st)&&(!flt.pk||b.package_id==flt.pk)&&(!q||[b.guest_name,b.email,b.ref,b.id,b.phone].join(" ").toLowerCase().includes(q)));$("#bt").innerHTML=bkTable(a);bindRows()};
+ $("#bq").oninput=e=>{flt.q=e.target.value;draw()};$("#bs").onchange=e=>{flt.st=e.target.value;draw()};$("#bp").onchange=e=>{flt.pk=e.target.value;draw()};
+ $("#ex").onclick=()=>{const c=["ref","guest_name","email","phone","package_id","travel_date","guests","total","paid_usd","status","method","pay_reference","guide_id","driver_id","created_at"];const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';const t=[c.join(","),...D.bookings.map(b=>c.map(k=>q(k=="ref"?b.ref||b.id:b[k])).join(","))].join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv"}));a.download="pelpa-bookings.csv";a.click()};
+ draw()}
+function closeDr(){$("#dr").hidden=true;$("#dr").innerHTML=""}
+function drawer(id){
+ const b=D.bookings.find(x=>x.id==id);if(!b)return;const p=pkOf(b.package_id);
+ const opt=(r,sel)=>`<option value="">Not assigned</option>`+approved(r).map(m=>{const s=avg(m.id);return`<option value="${esc(m.id)}" ${m.id==sel?"selected":""}>${esc(m.name)}${s.n?` · ${s.a.toFixed(1)}★ (${s.n})`:""}</option>`}).join("");
+ $("#dr").hidden=false;$("#dr").innerHTML=`<div class="gl" role="dialog" aria-modal="true"><div class="hd"><div><h3>${esc(b.guest_name)}</h3><div class="mut sm">${esc(b.ref||b.id)} · booked ${fd(b.created_at)}</div></div><button class="btn s" id="dx" aria-label="Close">✕</button></div>
+ <div class="gl2" style="padding:12px"><b>${esc(p.name)}</b><div class="sm mut">${fd(b.travel_date)} to ${fd(end(b))} · ${b.guests||1} guest(s) · total ${money(b.total)} · due now ${money(b.amount_due)}</div><div class="sm" style="margin-top:6px">${b.email?`<a href="mailto:${esc(b.email)}">${esc(b.email)}</a>`:""} ${b.phone?` · <a href="tel:${esc(b.phone)}">${esc(b.phone)}</a> · <a target="_blank" rel="noopener" href="https://wa.me/${esc(String(b.phone).replace(/\D/g,""))}">WhatsApp</a>`:""}</div><div class="sm mut" style="margin-top:4px">Method: ${esc(b.method||"-")} · reference: <b>${esc(b.pay_reference||"none")}</b></div></div>
+ <div class="row"><label class="f"><span>Status</span><select id="ds">${Object.entries(ST).map(([k,v])=>`<option value="${k}" ${b.status==k?"selected":""}>${v}</option>`).join("")}</select></label><label class="f"><span>Paid so far (USD)</span><input id="dp" type="number" min="0" value="${+b.paid_usd||0}"></label></div>
+ <div class="bar"><button class="btn s" id="pd">Mark deposit paid</button><button class="btn s" id="pf">Mark paid in full</button></div>
+ <div class="row"><label class="f"><span>Guide</span><select id="dg">${opt("guide",b.guide_id)}</select></label><label class="f"><span>Driver</span><select id="dv">${opt("driver",b.driver_id)}</select></label></div>
+ <div id="cw" class="warn"></div>
+ <label class="f"><span>Internal notes (guests never see this)</span><textarea id="dn">${esc(b.admin_notes||"")}</textarea></label>
+ <div class="bar"><button class="btn p" id="sv">Save booking</button><button class="btn d" id="dl">Delete</button></div><div class="err" id="de"></div></div>`;
+ const chk=()=>{const w=[];[["dg","Guide"],["dv","Driver"]].forEach(([i,l])=>{const c=clash(b,$("#"+i).value);if(c.length)w.push(`${l} already assigned on overlapping dates: ${c.map(x=>x.guest_name+" ("+fd(x.travel_date)+")").join(", ")}`)});$("#cw").textContent=w.join(" | ")};
+ $("#dg").onchange=$("#dv").onchange=chk;chk();
+ $("#dr").onclick=e=>{if(e.target.id=="dr")closeDr()};$("#dx").onclick=closeDr;
+ $("#pd").onclick=()=>{$("#dp").value=Math.max(+$("#dp").value,+b.amount_due||Math.ceil((+b.total||0)*.3));$("#ds").value="deposit_paid"};
+ $("#pf").onclick=()=>{$("#dp").value=+b.total||0;$("#ds").value="paid"};
+ $("#dl").onclick=async()=>{if(!confirm("Delete this booking permanently?"))return;const e=await API.del("bookings",b.id);if(e){$("#de").textContent=e;return}closeDr();toast("Deleted");reload()};
+ $("#sv").onclick=async()=>{const n={...b,status:$("#ds").value,paid_usd:+$("#dp").value||0,guide_id:$("#dg").value||null,driver_id:$("#dv").value||null,admin_notes:$("#dn").value};const e=await API.save("bookings",n);if(e){$("#de").textContent=e.includes("column")?e+" . Run the Setup SQL to add the missing columns.":e;return}Object.assign(b,n);closeDr();toast("Booking saved");nav();show()}}
+
+/* ---------- Team ---------- */
+function tm(){
+ const row=m=>{const s=avg(m.id);return`<div class="card gl" style="display:grid;gap:10px"><div style="display:flex;gap:12px;align-items:center"><div class="img sq" style="width:64px;max-width:64px;border-radius:50%;${thumb(m.photo)}">${m.photo?"":esc((m.name||"?")[0])}</div><div style="min-width:0"><b>${esc(m.name)}</b> <span class="pill ${m.status=="pending"?"wa":""}">${esc(m.role)}${m.status&&m.status!="approved"?" · "+esc(m.status):""}</span><div class="mut sm">${m.years||0} yrs · ${esc(m.languages||"")}</div><div class="sm"><span class="stars">${s.n?stars(s.a):""}</span> ${s.n?s.a.toFixed(1)+" ("+s.n+")":"no ratings yet"}</div></div></div><div class="bar">${m.status=="pending"?`<button class="btn s p" data-ap="${esc(m.id)}">Approve</button>`:""}<button class="btn s" data-me="${esc(m.id)}">Edit</button></div></div>`};
+ $("#mn").innerHTML=hdr("Guides & drivers","Approve applicants, edit profiles and photos",`<button class="btn p" id="ad">+ Add member</button>`)+`<div class="grid">${D.members.map(row).join("")||'<p class="mut">No members yet.</p>'}</div>`;
+ $("#ad").onclick=()=>mForm();$$("[data-me]").forEach(b=>b.onclick=()=>mForm(b.dataset.me));
+ $$("[data-ap]").forEach(b=>b.onclick=async()=>{const m=mem(b.dataset.ap);m.status="approved";const e=await API.save("members",m);toast(e||"Approved");reload()})}
+function mForm(id){
+ const m=id?mem(id):{id:crypto.randomUUID?crypto.randomUUID():"m"+Date.now(),role:"guide",name:"",years:0,languages:"",bio:"",photo:"",status:"approved",phone:"",license_no:""};
+ $("#dr").hidden=false;$("#dr").innerHTML=`<div class="gl"><div class="hd"><h3>${id?"Edit":"New"} member</h3><button class="btn s" id="dx">✕</button></div>
+ <div style="display:flex;gap:12px;align-items:center"><div class="img sq" id="mp" style="border-radius:50%;${thumb(m.photo)}">${m.photo?"":"Photo"}</div><div class="bar"><button class="btn s" id="mu">Upload photo</button><button class="btn s" id="mc">Remove</button></div></div>
+ <div class="row"><label class="f"><span>Name</span><input id="mn_" value="${esc(m.name)}"></label><label class="f"><span>Role</span><select id="mr"><option value="guide" ${m.role=="guide"?"selected":""}>Guide</option><option value="driver" ${m.role=="driver"?"selected":""}>Driver</option></select></label><label class="f"><span>Years</span><input id="my" type="number" min="0" value="${+m.years||0}"></label><label class="f"><span>Status</span><select id="ms">${["approved","pending","rejected"].map(s=>`<option ${m.status==s?"selected":""}>${s}</option>`).join("")}</select></label><label class="f"><span>Phone</span><input id="mh" value="${esc(m.phone||"")}"></label><label class="f"><span>License no.</span><input id="ml" value="${esc(m.license_no||"")}"></label></div>
+ <label class="f"><span>Languages</span><input id="mg" value="${esc(m.languages||"")}"></label><label class="f"><span>Bio</span><textarea id="mb_">${esc(m.bio||"")}</textarea></label>
+ <div class="bar"><button class="btn p" id="sv">Save</button>${id?'<button class="btn d" id="dl">Delete</button>':""}</div><div class="err" id="de"></div></div>`;
+ $("#dr").onclick=e=>{if(e.target.id=="dr")closeDr()};$("#dx").onclick=closeDr;
+ const ph=()=>{$("#mp").style.cssText=thumb(m.photo);$("#mp").textContent=m.photo?"":"Photo"};
+ $("#mu").onclick=()=>pickImage(u=>{m.photo=u;ph()},600);$("#mc").onclick=()=>{m.photo="";ph()};
+ $("#sv").onclick=async()=>{if(!$("#mn_").value.trim()){$("#de").textContent="Name is required";return}Object.assign(m,{name:$("#mn_").value.trim(),role:$("#mr").value,years:+$("#my").value||0,status:$("#ms").value,phone:$("#mh").value,license_no:$("#ml").value,languages:$("#mg").value,bio:$("#mb_").value});const e=await API.save("members",m);if(e){$("#de").textContent=e;return}closeDr();toast("Saved");reload()};
+ if(id)$("#dl").onclick=async()=>{if(!confirm("Delete this member? Their reviews stay but lose the name."))return;const e=await API.del("members",m.id);if(e){$("#de").textContent=e;return}closeDr();reload()}}
+
+/* ---------- Ratings & feedback ---------- */
+let rvf="all";
+function rv(){
+ const list=D.reviews.filter(r=>rvf=="all"||(rvf=="low"&&+r.stars<=2)||(rvf=="open"&&!r.resolved&&+r.stars<=3)).sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||"")));
+ const ms=D.members.map(m=>({m,...avg(m.id)})).filter(x=>x.n).sort((a,b)=>b.a-a.a);
+ $("#mn").innerHTML=hdr("Ratings & feedback","What guests say about each guide and driver")+
+ `<div class="grid">${ms.map(x=>`<div class="kpi gl"><b>${esc(x.m.name)}</b> <span class="pill">${esc(x.m.role)}</span><div class="n">${x.a.toFixed(1)} <span class="stars" style="font-size:16px">${stars(x.a)}</span></div><div class="l">${x.n} review${x.n>1?"s":""}${x.a<4?" · below 4.0 featuring bar":""}</div></div>`).join("")||'<p class="mut">No ratings yet.</p>'}</div>
+ <div class="card gl"><div class="bar" style="margin-bottom:12px"><select id="rf" style="max-width:260px"><option value="all">All feedback</option><option value="low" ${rvf=="low"?"selected":""}>1 and 2 stars only</option><option value="open" ${rvf=="open"?"selected":""}>Unresolved, 3 stars or less</option></select></div>
+ <div class="att">${list.map(r=>{const m=mem(r.member_id),b=D.bookings.find(x=>(x.ref||x.id)==r.booking_ref);return`<div class="gl2" style="display:grid;gap:6px;align-items:start"><div style="display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap"><span><span class="stars">${stars(r.stars)}</span> <b>${esc(r.reviewer||"Guest")}</b> about <b>${esc(m?m.name:"a member")}</b> ${r.resolved?'<span class="pill ok">Resolved</span>':""}</span><span class="mut sm">${fd(r.created_at)}</span></div><div>${esc(r.comment||"")}</div><div class="mut sm">Booking ${esc(r.booking_ref||"-")}: ${b?'<span style="color:var(--ok);font-weight:700">verified</span> ('+esc(b.guest_name)+")":"not found in bookings"}</div><div class="bar">${b&&b.email?`<a class="btn s" style="text-decoration:none;color:inherit" href="mailto:${esc(b.email)}?subject=${encodeURIComponent("Your PELPA journey feedback")}">Contact guest</a>`:""}<button class="btn s" data-rs="${esc(r.id)}">${r.resolved?"Reopen":"Mark resolved"}</button><button class="btn s d" data-rd="${esc(r.id)}">Delete</button></div></div>`}).join("")||'<p class="mut" style="margin:0">Nothing to show.</p>'}</div></div>`;
+ $("#rf").onchange=e=>{rvf=e.target.value;rv()};
+ $$("[data-rs]").forEach(b=>b.onclick=async()=>{const r=D.reviews.find(x=>x.id==b.dataset.rs);r.resolved=!r.resolved;const e=await API.save("reviews",r);if(e){toast(e);r.resolved=!r.resolved}nav();rv()});
+ $$("[data-rd]").forEach(b=>b.onclick=async()=>{if(!confirm("Delete this review permanently?"))return;const e=await API.del("reviews",b.dataset.rd);toast(e||"Deleted");reload()})}
+
+/* ---------- Journeys ---------- */
+const CATS=["Culture","Trek","Festival","Wellness","Luxury","Corporate"];
+function jr(){
+ $("#mn").innerHTML=hdr("Journeys","Add, edit, hide and re-picture the tour packages",`<button class="btn p" id="ad">+ New journey</button>`)+
+ `<div class="grid">${D.packages.map(p=>`<div class="card gl" style="display:grid;gap:10px"><div class="img" style="${thumb(p.image)}">${p.image?"":"No cover picture"}</div><div><b>${esc(p.name)}</b> ${p.premier?'<span class="pill">★ Premier</span>':""} ${p.published===false?'<span class="pill wa">Hidden</span>':""}<div class="mut sm">${esc(p.cat)} · ${p.days} days · ${money(p.price)} · ${esc(p.region||"")}</div></div><div class="bar"><button class="btn s" data-e="${esc(p.id)}">Edit</button><button class="btn s" data-im="${esc(p.id)}">Change picture</button></div></div>`).join("")}</div>`;
+ $("#ad").onclick=()=>jForm();$$("[data-e]").forEach(b=>b.onclick=()=>jForm(b.dataset.e));
+ $$("[data-im]").forEach(b=>b.onclick=()=>pickImage(async u=>{const p=D.packages.find(x=>x.id==b.dataset.im);p.image=u;const e=await API.save("packages",p);toast(e||"Picture updated");jr()},1000))}
+function jForm(id){
+ const p=id?D.packages.find(x=>x.id==id):{id:"j"+Date.now().toString(36),name:"",cat:"Culture",days:5,price:1500,region:"",blurb:"",highlights:[],itin:"",image:"",premier:false,published:true};
+ const hl=Array.isArray(p.highlights)?p.highlights.join("\n"):p.highlights||"";
+ $("#dr").hidden=false;$("#dr").innerHTML=`<div class="gl"><div class="hd"><h3>${id?"Edit":"New"} journey</h3><button class="btn s" id="dx">✕</button></div>
+ <div class="img" id="jp" style="${thumb(p.image)}">${p.image?"":"No cover picture"}</div><div class="bar"><button class="btn s" id="ju">Upload picture</button><button class="btn s" id="jc">Remove</button></div>
+ <label class="f"><span>Name</span><input id="jn" value="${esc(p.name)}"></label>
+ <div class="row"><label class="f"><span>PELPA way / category</span><select id="jt">${CATS.map(c=>`<option ${p.cat==c?"selected":""}>${c}</option>`).join("")}</select></label><label class="f"><span>Days</span><input id="jd" type="number" min="1" value="${p.days}"></label><label class="f"><span>Price per person (USD)</span><input id="jpr" type="number" min="0" value="${p.price}"></label></div>
+ <label class="f"><span>Region</span><input id="jg" value="${esc(p.region||"")}"></label>
+ <label class="f"><span>Short description</span><textarea id="jb">${esc(p.blurb||"")}</textarea></label>
+ <label class="f"><span>Highlights (one per line)</span><textarea id="jh">${esc(hl)}</textarea></label>
+ <label class="f"><span>Itinerary (one stop per line: Place | altitude in metres | description)</span><textarea id="ji" style="min-height:130px">${esc(p.itin||"")}</textarea></label>
+ <label class="chk f"><input type="checkbox" id="jx" ${p.premier?"checked":""}> Show ★ Premier tag</label><label class="chk f"><input type="checkbox" id="jv" ${p.published!==false?"checked":""}> Published on the website</label>
+ <div class="bar"><button class="btn p" id="sv">Save journey</button>${id?'<button class="btn d" id="dl">Delete</button>':""}</div><div class="err" id="de"></div></div>`;
+ $("#dr").onclick=e=>{if(e.target.id=="dr")closeDr()};$("#dx").onclick=closeDr;
+ const ph=()=>{$("#jp").style.cssText=thumb(p.image);$("#jp").textContent=p.image?"":"No cover picture"};
+ $("#ju").onclick=()=>pickImage(u=>{p.image=u;ph()},1000);$("#jc").onclick=()=>{p.image="";ph()};
+ $("#sv").onclick=async()=>{if(!$("#jn").value.trim()){$("#de").textContent="Name is required";return}Object.assign(p,{name:$("#jn").value.trim(),cat:$("#jt").value,days:+$("#jd").value||1,price:+$("#jpr").value||0,region:$("#jg").value,blurb:$("#jb").value,highlights:$("#jh").value.split("\n").map(s=>s.trim()).filter(Boolean),itin:$("#ji").value,premier:$("#jx").checked,published:$("#jv").checked});const e=await API.save("packages",p);if(e){$("#de").textContent=e.includes("column")?e+" . Run the Setup SQL to add the missing columns.":e;return}closeDr();toast("Journey saved");reload()};
+ if(id)$("#dl").onclick=async()=>{if(!confirm("Delete this journey? Past bookings keep their record."))return;const e=await API.del("packages",p.id);if(e){$("#de").textContent=e;return}closeDr();reload()}}
+
+/* ---------- Pictures ---------- */
+function pic(){
+ const S=D.settings,G=Array.isArray(S.gallery)?S.gallery:[];
+ const tile=(k,l,sz,h)=>`<div class="card gl" style="display:grid;gap:10px"><b>${l}</b><div class="img" style="${thumb(S[k])}">${S[k]?"":"Using the site default"}</div><div class="bar"><button class="btn s p" data-u="${k}" data-sz="${sz}">Upload</button><button class="btn s" data-l="${k}">Paste URL</button><button class="btn s" data-x="${k}">Reset</button></div><div class="mut sm">${h}</div></div>`;
+ $("#mn").innerHTML=hdr("Pictures","Change every picture on the website. Uploads are shrunk automatically.")+
+ `<h3>Site</h3><div class="grid">${tile("hero_bg","Hero background",1800,"Large photo behind the headline")}${tile("logo","Logo",400,"Square or wide logo")}${tile("flag_img","Prayer flag image",600,"Optional")}</div>
+ <h3>Gallery tiles</h3><div class="grid">${[0,1,2,3,4,5].map(i=>{const g=G[i]||{};return`<div class="card gl" style="display:grid;gap:10px"><b>Tile ${i+1}</b><div class="img" style="${thumb(g.img)}">${g.img?"":esc(SAMPLE.gal[i]||"Default")}</div><label class="f"><span>Caption</span><input data-gc="${i}" value="${esc(g.cap||"")}" placeholder="${esc(SAMPLE.gal[i]||"")}"></label><div class="bar"><button class="btn s p" data-gu="${i}">Upload</button><button class="btn s" data-gl="${i}">Paste URL</button><button class="btn s" data-gx="${i}">Reset</button></div></div>`}).join("")}</div>
+ <h3>Journey covers and team photos</h3><div class="card gl mut">Change journey covers in <a href="#" data-go="jr">Journeys</a> and guide or driver photos in <a href="#" data-go="tm">Team</a>.</div>`;
+ const setK=async(k,v)=>{const e=await API.setting(k,v);toast(e||"Saved. The website shows it on the next load.");pic()};
+ const gset=async(i,f)=>{const g=Array.from({length:6},(_,j)=>({...(Array.isArray(D.settings.gallery)?D.settings.gallery[j]:{})}));f(g[i]);const e=await API.setting("gallery",g);toast(e||"Saved");pic()};
+ $$("[data-u]").forEach(b=>b.onclick=()=>pickImage(u=>setK(b.dataset.u,u),+b.dataset.sz));
+ $$("[data-l]").forEach(b=>b.onclick=()=>{const u=prompt("Picture URL (https://...)");if(u)setK(b.dataset.l,u.trim())});
+ $$("[data-x]").forEach(b=>b.onclick=async()=>{await API.unset(b.dataset.x);toast("Reset to default");pic()});
+ $$("[data-gu]").forEach(b=>b.onclick=()=>pickImage(u=>gset(+b.dataset.gu,g=>g.img=u),1000));
+ $$("[data-gl]").forEach(b=>b.onclick=()=>{const u=prompt("Picture URL (https://...)");if(u)gset(+b.dataset.gl,g=>g.img=u.trim())});
+ $$("[data-gx]").forEach(b=>b.onclick=()=>gset(+b.dataset.gx,g=>{g.img=""}));
+ $$("[data-gc]").forEach(i=>i.onchange=()=>gset(+i.dataset.gc,g=>g.cap=i.value));
+ $$("[data-go]").forEach(a=>a.onclick=e=>{e.preventDefault();tab=a.dataset.go;nav();show()})}
+
+/* ---------- Content ---------- */
+const TEXTS=[["#tours h2","Journeys: heading"],["#tours p.sub","Journeys: subtitle"],["#route h2","Route: heading"],["#route p.sub","Route: subtitle"],["#when h2","Seasons: heading"],["#when p.sub","Seasons: subtitle"],["#fests h2","Festivals: heading"],["#fests p.sub","Festivals: subtitle"],["#team h2","Team: heading"],["#team p.sub","Team: subtitle"],["#gallery h2","Gallery: heading"],["#gallery p.sub","Gallery: subtitle"],["#why h2","Why PELPA: heading"],["#why p.sub","Why PELPA: subtitle"],["#plan h2","Plan: heading"],["#plan p.sub","Plan: subtitle"],["#faq h2","FAQ: heading"],["#faq p.sub","FAQ: subtitle"]];
+const DEF={"#tours h2":"Journeys, built around Bhutan","#route h2":"Cross Bhutan, one valley at a time","#when h2":"When should you go?","#fests h2":"Festivals worth planning a trip around","#team h2":"Guides and drivers travellers rate above 4 stars","#gallery h2":"Bhutan, from valley floor to high pass","#why h2":"Why travellers choose PELPA","#plan h2":"Design your own journey","#faq h2":"Visas, fees and best seasons"};
+function ct(){
+ const S=D.settings,T=S.texts||{},C=S.contact||{};
+ $("#mn").innerHTML=hdr("Website content","Edit the words on the public site. Empty fields keep the site default.",`<button class="btn p" id="sv">Save all</button>`)+
+ `<div class="card gl" style="display:grid;gap:12px"><h3>Hero</h3><label class="f"><span>Website title (browser tab)</span><input id="c_title" value="${esc(S.title||"")}" placeholder="PELPA | Premier Experiences, Leisure & Professional Adventures"></label><label class="f"><span>Slogan (headline)</span><textarea id="c_slogan" style="min-height:60px">${esc(S.slogan||"")}</textarea></label><label class="f"><span>Lead paragraph</span><textarea id="c_lead">${esc(S.lead||"")}</textarea></label></div>
+ <div class="card gl" style="display:grid;gap:12px"><h3>Contact</h3><div class="row"><label class="f"><span>Email</span><input id="c_email" type="email" value="${esc(C.email||"")}" placeholder="hello@pelpa.bt"></label><label class="f"><span>Phone</span><input id="c_phone" value="${esc(C.phone||"")}" placeholder="+975 17 000 000"></label><label class="f"><span>WhatsApp (digits only)</span><input id="c_wa" value="${esc(C.whatsapp||"")}" placeholder="97517000000"></label></div></div>
+ <div class="card gl" style="display:grid;gap:12px"><h3>Section headings</h3><div class="row">${TEXTS.map(([s,l],i)=>`<label class="f"><span>${l}</span><input data-tx="${i}" value="${esc(T[s]||"")}" placeholder="${esc(DEF[s]||"Site default")}"></label>`).join("")}</div></div>`;
+ $("#sv").onclick=async()=>{const t={};$$("[data-tx]").forEach(i=>{if(i.value.trim())t[TEXTS[+i.dataset.tx][0]]=i.value.trim()});
+  const set={title:$("#c_title").value.trim(),slogan:$("#c_slogan").value.trim(),lead:$("#c_lead").value.trim(),texts:t,contact:{email:$("#c_email").value.trim(),phone:$("#c_phone").value.trim(),whatsapp:$("#c_wa").value.replace(/\D/g,"")}};
+  for(const k of Object.keys(set)){const v=set[k];if(v===""||(typeof v=="object"&&!Object.values(v).some(Boolean))){await API.unset(k)}else{const e=await API.setting(k,v);if(e){toast(e);return}}}
+  toast("Content saved. Refresh the website to see it.")}}
+
+/* ---------- Enquiries ---------- */
+function eq(){
+ const rows=[...D.enquiries].sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||"")));
+ $("#mn").innerHTML=hdr("Enquiries","Custom journey requests and contact messages")+`<div class="att">${rows.map(r=>{const rest=Object.entries(r).filter(([k,v])=>v!=null&&v!==""&&!["id","created_at","name","guest_name","email","phone"].includes(k));return`<div class="gl2" style="display:grid;gap:4px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(r.name||r.guest_name||"Guest")}</b><span class="mut sm">${fd(r.created_at)}</span></div><div class="sm">${r.email?`<a href="mailto:${esc(r.email)}">${esc(r.email)}</a>`:""} ${r.phone?" · "+esc(r.phone):""}</div><div class="sm mut">${rest.map(([k,v])=>`<b>${esc(k)}:</b> ${esc(typeof v=="object"?JSON.stringify(v):v)}`).join(" · ")}</div><div class="bar"><button class="btn s d" data-ed="${esc(r.id)}">Delete</button></div></div>`}).join("")||'<p class="mut">No enquiries yet.</p>'}</div>`;
+ $$("[data-ed]").forEach(b=>b.onclick=async()=>{if(!confirm("Delete this enquiry?"))return;let e=await API.del("enquiries",b.dataset.ed);await sb.from("inquiries").delete().eq("id",b.dataset.ed);toast(e||"Deleted");reload()})}
+
+/* ---------- Setup ---------- */
+const SQL=`-- PELPA backend. Safe to run more than once. Paste into Supabase > SQL Editor > Run.
+create table if not exists admins(email text primary key);
+insert into admins(email) values ('${CFG.LOGIN_EMAIL}') on conflict do nothing;
+create or replace function is_admin() returns boolean language sql security definer stable set search_path=public as $$ select exists(select 1 from admins where lower(email)=lower(auth.jwt()->>'email')) $$;
+create table if not exists settings(key text primary key,value jsonb);
+create table if not exists members(id uuid primary key default gen_random_uuid(),role text,name text,years int,languages text,bio text,photo text,status text default 'pending',phone text,license_no text);
+create table if not exists reviews(id uuid primary key default gen_random_uuid(),member_id uuid,stars int,reviewer text,booking_ref text,comment text,resolved boolean default false,created_at timestamptz default now());
+create table if not exists packages(id text primary key,name text,cat text,days int,price numeric,region text,blurb text,highlights text[]);
+alter table packages add column if not exists itin text, add column if not exists premier boolean default false, add column if not exists published boolean default true, add column if not exists image text;
+create table if not exists bookings(id uuid primary key default gen_random_uuid(),package_id text,guest_name text,email text,phone text,travel_date date,guests int,total numeric,method text,status text,verified boolean,created_at timestamptz default now());
+alter table bookings add column if not exists ref text, add column if not exists pay_reference text, add column if not exists amount_due numeric, add column if not exists paid_usd numeric default 0, add column if not exists guide_id text, add column if not exists driver_id text, add column if not exists admin_notes text;
+create unique index if not exists bookings_ref_u on bookings(ref);
+create table if not exists enquiries(id uuid primary key default gen_random_uuid(),name text,email text,phone text,message text,created_at timestamptz default now());
+create table if not exists inquiries(id uuid primary key default gen_random_uuid(),name text,email text,phone text,message text,created_at timestamptz default now());
+create or replace view member_stats as select member_id,avg(stars)::numeric(3,2) avg,count(*) n from reviews group by member_id;
+do $$ declare t text; begin foreach t in array array['admins','settings','members','reviews','packages','bookings','enquiries','inquiries'] loop execute format('alter table %I enable row level security',t); execute format('drop policy if exists admin_all on %I',t); execute format('create policy admin_all on %I for all using (is_admin()) with check (is_admin())',t); end loop; end $$;
+drop policy if exists pub_read on settings; create policy pub_read on settings for select using (true);
+drop policy if exists pub_read on packages; create policy pub_read on packages for select using (coalesce(published,true));
+drop policy if exists pub_read on members; create policy pub_read on members for select using (status='approved');
+drop policy if exists pub_read on reviews; create policy pub_read on reviews for select using (true);
+drop policy if exists pub_ins on bookings; create policy pub_ins on bookings for insert with check (true);
+drop policy if exists pub_ins on enquiries; create policy pub_ins on enquiries for insert with check (true);
+drop policy if exists pub_ins on inquiries; create policy pub_ins on inquiries for insert with check (true);
+drop policy if exists pub_ins on reviews; create policy pub_ins on reviews for insert with check (stars between 1 and 5);
+drop policy if exists pub_ins on members; create policy pub_ins on members for insert with check (status='pending');
+create or replace function get_booking(p_ref text, p_email text) returns table(ref text,guest_name text,package_id text,travel_date date,guests int,total numeric,status text,paid_usd numeric,guide_id text,driver_id text) language sql security definer set search_path=public as $$ select b.ref,b.guest_name,b.package_id,b.travel_date,b.guests,b.total,b.status,b.paid_usd,b.guide_id,b.driver_id from bookings b where b.ref=p_ref and lower(b.email)=lower(p_email) $$;
+grant execute on function get_booking(text,text) to anon;
+grant select on member_stats to anon;
+insert into storage.buckets(id,name,public) values ('site','site',true) on conflict do nothing;
+drop policy if exists site_read on storage.objects; create policy site_read on storage.objects for select using (bucket_id='site');
+drop policy if exists site_write on storage.objects; create policy site_write on storage.objects for all using (bucket_id='site' and is_admin()) with check (bucket_id='site' and is_admin());`;
+async function importPk(){const rows=SAMPLE.pk.map(p=>({id:p.id,name:p.name,cat:p.cat,days:p.days,price:p.price,region:p.region,blurb:p.blurb,highlights:p.highlights,itin:p.itin,premier:p.id=="lux",published:true,image:""}));const r=await sb.from("packages").upsert(rows);toast(r.error?r.error.message:"Imported "+rows.length+" journeys");reload()}
+function su(){
+ $("#mn").innerHTML=hdr("Setup","Backend status and the database script")+
+ `<div class="card gl" style="display:grid;gap:10px"><h3>${READY?"Connected to Supabase":"Not connected"}</h3>
+ <ol style="margin:0;padding-left:20px;display:grid;gap:6px"><li>Run the script below once in Supabase, <b>SQL Editor</b>.</li><li><b>Authentication, Users, Add user</b>: email <b>${esc(CFG.LOGIN_EMAIL)}</b> with the admin password, tick <i>Auto confirm</i>.</li><li>Put the Project URL and anon key in <b>config.js</b> (one file used by both pages).</li></ol>
+ <p class="mut sm" style="margin:0">The password is never stored in any file. Supabase checks it, and only emails in the <code>admins</code> table can change data.</p></div>
+ <div class="card gl" style="display:grid;gap:10px"><h3>Journeys</h3><p class="mut sm" style="margin:0">The public site ships with ${SAMPLE.pk.length} starter journeys. Import them to edit them here, or add your own from the Journeys tab.</p><div class="bar"><button class="btn p" id="ip">Import starter journeys (${D.packages.length} in database)</button></div></div>
+ <div class="card gl" style="display:grid;gap:10px"><div class="hd"><h3>Database script</h3><button class="btn s" id="cp">Copy</button></div><pre class="gl2" id="sq"></pre></div>`;
+ $("#sq").textContent=SQL;$("#ip").onclick=importPk;$("#cp").onclick=()=>{navigator.clipboard.writeText(SQL).then(()=>toast("Copied"),()=>toast("Select the text and copy"))}}
+document.addEventListener("keydown",e=>{if(e.key=="Escape"&&!$("#dr").hidden)closeDr()});
+</script>
+</body>
+</html>
